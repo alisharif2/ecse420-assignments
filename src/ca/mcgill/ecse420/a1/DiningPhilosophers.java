@@ -36,7 +36,9 @@ public class DiningPhilosophers {
 
     // global constants
     private static final int waitTime = 10;
-
+    private static final int _max_starvation = 100;
+    private static final int _hunger = 80;
+    
     private static enum t_state {
       EATING, THINKING, ACQUIRING
     }
@@ -49,26 +51,26 @@ public class DiningPhilosophers {
     private int _starvation; // 100 = dead
 
     public Philosopher(int id) {
+      _currentState = t_state.THINKING;
       _starvation = 0;
       _id = id;
     }
 
     @Override
     public void run() {
-      _currentState = t_state.THINKING;
       while (true) {
         try {
           
           Thread.sleep(waitTime);
           
-          if(_starvation >= 100) {
+          if(_starvation >= _max_starvation) {
             System.out.println(String.format("P%d has died", _id));
             return;
           }
           
           switch (_currentState) {
             case THINKING:
-              if(_starvation > 80) _currentState = t_state.ACQUIRING;
+              if(_starvation > _hunger) _currentState = t_state.ACQUIRING;
               ++_starvation;
               break;
               
@@ -81,9 +83,16 @@ public class DiningPhilosophers {
               break;
               
             case EATING:
-              _starvation = 0;
-              returnChopsticks();
-              _currentState = t_state.THINKING;
+              if(_starvation <= 0)
+              {
+                // done eating
+                _currentState = t_state.THINKING;
+                returnChopsticks();
+              }
+              else {
+                // keep eating
+                --_starvation;
+              }
               break;
               
             default:
