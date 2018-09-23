@@ -6,7 +6,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DiningPhilosophers {
   public static final int numberOfPhilosophers = 5;
-  public static final Chopstick[] chopsticks = new Chopstick[numberOfPhilosophers];
+  public static final int numberOfChopsticks = 5;
+  public static final Chopstick[] chopsticks = new Chopstick[numberOfChopsticks];
 
 
   public static void main(String[] args) {
@@ -15,6 +16,8 @@ public class DiningPhilosophers {
     // create all objects
     for (int i = 0; i < numberOfPhilosophers; ++i) {
       philosophers[i] = new Philosopher(i);
+    }
+    for (int i = 0; i < numberOfChopsticks; ++i) {
       chopsticks[i] = new Chopstick(i);
     }
 
@@ -80,6 +83,7 @@ public class DiningPhilosophers {
             case EATING:
               _starvation = 0;
               returnChopsticks();
+              _currentState = t_state.THINKING;
               break;
               
             default:
@@ -98,7 +102,7 @@ public class DiningPhilosophers {
       
       boolean ret = false;
       
-      for(int i = 0; i < numberOfPhilosophers;++i) {
+      for(int i = 0; i < numberOfChopsticks;++i) {
         if (chopsticks[i].take(this)) {
           _chopsticks[_nChopsticks] = chopsticks[i];
           ++_nChopsticks;
