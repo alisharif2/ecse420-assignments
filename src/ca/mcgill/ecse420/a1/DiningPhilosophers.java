@@ -5,8 +5,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DiningPhilosophers {
-  public static int numberOfPhilosophers = 5;
-  public static Chopstick[] chopsticks = new Chopstick[numberOfPhilosophers];
+  public static final int numberOfPhilosophers = 5;
+  public static final Chopstick[] chopsticks = new Chopstick[numberOfPhilosophers];
 
 
   public static void main(String[] args) {
@@ -23,37 +23,69 @@ public class DiningPhilosophers {
     for (int i = 0; i < numberOfPhilosophers; ++i) {
       executor.execute(philosophers[i]);
     }
+    
+    executor.shutdown();
+    
   }
+  
 
   public static class Philosopher implements Runnable {
 
+    // global constants
+    private static final int waitTime = 10;
+
+    private static enum t_state {
+      EATING, THINKING, ACQUIRING
+    }
+    
+    // mutable members
     private Chopstick[] _chopsticks = {null, null};
     private int _nChopsticks = 0;
     private int _id;
-    private static int waitTime = 10;
-
-    private static enum State {
-      EATING, THINKING
-    }
-
-    private State _currentState;
+    private t_state _currentState;
+    private int _starvation; // 100 = dead
 
     public Philosopher(int id) {
+      _starvation = 0;
       _id = id;
     }
 
     @Override
     public void run() {
-      _currentState = State.THINKING;
+      _currentState = t_state.THINKING;
       while (true) {
         try {
-          changeState(State.EATING);
-          Thread.sleep(waitTime); // enjoy the meal
-
-          System.out.println(String.format("P%d EATEN", _id));
-
-          changeState(State.THINKING);
-          Thread.sleep(waitTime); // enjoy the mindscape
+          
+          Thread.sleep(waitTime);
+          
+          if(_starvation >= 100) {
+            System.out.println(String.format("P%d has died", _id));
+            return;
+          }
+          
+          switch (_currentState) {
+            case THINKING:
+              if(_starvation > 80) _currentState = t_state.ACQUIRING;
+              ++_starvation;
+              break;
+              
+            case ACQUIRING:
+              if(_nChopsticks == 2) _currentState = t_state.EATING;
+              else {
+                get_single_chopstick();
+              }
+              ++_starvation;
+              break;
+              
+            case EATING:
+              _starvation = 0;
+              returnChopsticks();
+              break;
+              
+            default:
+              System.out.println("Invalid state");
+              break;
+          }
 
         } catch (InterruptedException e) {
           e.printStackTrace();
@@ -61,37 +93,28 @@ public class DiningPhilosophers {
       }
     }
 
-    public void changeState(State s) throws InterruptedException {
-      if (_currentState != s) {
-        _currentState = s;
-        if (s == State.EATING) {
-          getChopsticks();
-        } else {
-          returnChopsticks();
-        }
-      }
-    }
-
-    public void getChopsticks() throws InterruptedException {
-      int tmp = 0;
+    public boolean get_single_chopstick() throws InterruptedException {      
+      System.out.println(String.format("P%d attempting to acquire a chopstick", _id));
       
-      System.out.println(String.format("P%d attempting to acquire chopsticks", _id));
+      boolean ret = false;
       
-      // attempt to reserve two chopsticks
-      while (_nChopsticks < 2) {
-        if (chopsticks[tmp].take(this)) {
-          _chopsticks[_nChopsticks] = chopsticks[tmp];
+      for(int i = 0; i < numberOfPhilosophers;++i) {
+        if (chopsticks[i].take(this)) {
+          _chopsticks[_nChopsticks] = chopsticks[i];
           ++_nChopsticks;
           
-          // Cannot grab chopstick instantly, so wait
-          Thread.sleep(waitTime/10);
-          
+          System.out.println(String.format("P%d acquired C%d", _id, chopsticks[i]._id));
+          ret = true;
+          break;
         }
-        tmp = (++tmp) % numberOfPhilosophers;
       }
       
-      System.out.println(String.format("P%d acquired chopsticks", _id));
+      if(!ret)
+      {
+        System.out.println(String.format("P%d could not acquire chopstick", _id));
+      }
 
+      return ret;
     }
 
     public void returnChopsticks() {
