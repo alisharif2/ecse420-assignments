@@ -1,8 +1,10 @@
 package ca.mcgill.ecse420.a1;
 
+
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class DiningPhilosophers {
   public static final int numberOfPhilosophers = 5;
@@ -39,7 +41,7 @@ public class DiningPhilosophers {
     // controls how fast they move and how quickly they starve
     private static final int waitTime = 10; // milliseconds
     private static final int _max_starvation = 100; // when they die
-    private static final int _hunger = 80; // point they get hungry
+    private static final int _hunger = 40; // point they get hungry
 
     private static enum t_state {
       EATING, THINKING, ACQUIRING
@@ -52,7 +54,7 @@ public class DiningPhilosophers {
     private t_state _currentState;
     private int _starvation;
     
-    private static final ReentrantLock mutex = new ReentrantLock();
+    private static final QueueLock mutex = new QueueLock();
 
     public Philosopher(int id) {
       _currentState = t_state.THINKING;
@@ -90,11 +92,11 @@ public class DiningPhilosophers {
             // retrieve chopsticks slowly
             // 2 update ticks minimum
             if (_nChopsticks == 2) {
-              mutex.unlock();
+              mutex.unlock(this);
               _currentState = t_state.EATING;
             }
             else {
-              if(mutex.tryLock()) {
+              if(mutex.requestLock(this)) {
                 get_single_chopstick();
               }
             }
@@ -105,11 +107,12 @@ public class DiningPhilosophers {
             // can't eat instantly
             if (_starvation <= 0) {
               // done eating
+              _starvation = 0;
               _currentState = t_state.THINKING;
               returnChopsticks();
             } else {
               // keep eating
-              --_starvation;
+              _starvation -= 10;
             }
             break;
 
@@ -211,4 +214,37 @@ public class DiningPhilosophers {
     }
 
   }
+
+  public static class QueueLock {
+    
+    private Queue<Philosopher> q;
+    
+    public QueueLock() {
+      q = new LinkedList<Philosopher>();
+    }
+    
+    public synchronized boolean requestLock(Philosopher p) {
+      // make sure the object is not double dipping
+      if(!q.contains(p)) {
+        q.add(p);
+      }
+      
+      // only give lock if object at head of queue
+      if(q.peek() == p) {
+        return true;
+      }
+      
+      return false;
+    }
+    
+    public synchronized boolean unlock(Philosopher p) {
+      if(q.peek() == p) {
+        q.remove();
+        return true;
+      }
+      return false;
+    }
+    
+  }
+  
 }
