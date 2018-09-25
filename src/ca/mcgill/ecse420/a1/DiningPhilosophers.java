@@ -53,7 +53,7 @@ public class DiningPhilosophers {
     private int _id;
     private t_state _currentState;
     private int _starvation;
-    
+
     private static final QueueLock mutex = new QueueLock();
 
     public Philosopher(int id) {
@@ -94,9 +94,8 @@ public class DiningPhilosophers {
             if (_nChopsticks == 2) {
               mutex.unlock(this);
               _currentState = t_state.EATING;
-            }
-            else {
-              if(mutex.requestLock(this)) {
+            } else {
+              if (mutex.requestLock(this)) {
                 get_single_chopstick();
               }
             }
@@ -188,7 +187,8 @@ public class DiningPhilosophers {
         retVal = true;
       }
 
-      //System.out.println(String.format("P%d %s C%d %s, OWNER P%d", p._id, op, _id, err, owner._id));
+      // System.out.println(String.format("P%d %s C%d %s, OWNER P%d", p._id, op, _id, err,
+      // owner._id));
       return retVal;
     }
 
@@ -208,7 +208,7 @@ public class DiningPhilosophers {
         retVal = false;
       }
 
-      //System.out.println(String.format("P%d %s C%d %s", p._id, op, _id, err));
+      // System.out.println(String.format("P%d %s C%d %s", p._id, op, _id, err));
       return retVal;
 
     }
@@ -216,35 +216,35 @@ public class DiningPhilosophers {
   }
 
   public static class QueueLock {
-    
+
     private Queue<Philosopher> q;
-    
+
     public QueueLock() {
       q = new LinkedList<Philosopher>();
     }
-    
+
     public synchronized boolean requestLock(Philosopher p) {
       // make sure the object is not double dipping
-      if(!q.contains(p)) {
+      if (!q.contains(p)) {
         q.add(p);
       }
-      
+
       // only give lock if object at head of queue
-      if(q.peek() == p) {
+      if (q.peek() == p) {
         return true;
       }
-      
+
       return false;
     }
-    
+
     public synchronized boolean unlock(Philosopher p) {
-      if(q.peek() == p) {
+      if (q.peek() == p) {
         q.remove();
         return true;
       }
       return false;
     }
-    
+
   }
-  
+
 }
