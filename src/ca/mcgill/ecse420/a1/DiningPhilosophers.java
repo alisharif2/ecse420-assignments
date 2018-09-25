@@ -35,7 +35,7 @@ public class DiningPhilosophers {
   public static class Philosopher implements Runnable {
 
     // global constants
-    private static final int waitTime = 10;
+    private static final int waitTime = 10; // milliseconds
     private static final int _max_starvation = 100;
     private static final int _hunger = 80;
     
@@ -61,6 +61,7 @@ public class DiningPhilosophers {
       while (true) {
         try {
           
+          // controls how fast they move and how quickly they starve
           Thread.sleep(waitTime);
           
           if(_starvation >= _max_starvation) {
@@ -75,6 +76,8 @@ public class DiningPhilosophers {
               break;
               
             case ACQUIRING:
+              // retrieve chopsticks slowly
+              // 2 update ticks minimum
               if(_nChopsticks == 2) _currentState = t_state.EATING;
               else {
                 get_single_chopstick();
@@ -83,6 +86,7 @@ public class DiningPhilosophers {
               break;
               
             case EATING:
+              // can't eat instantly
               if(_starvation <= 0)
               {
                 // done eating
@@ -111,6 +115,8 @@ public class DiningPhilosophers {
       
       boolean ret = false;
       
+      // only try to acquire a chopstick once
+      // loop through all chopsticks and take any free one
       for(int i = 0; i < numberOfChopsticks;++i) {
         if (chopsticks[i].take(this)) {
           _chopsticks[_nChopsticks] = chopsticks[i];
@@ -147,7 +153,7 @@ public class DiningPhilosophers {
   public static class Chopstick {
     private boolean reserved;
     private int _id;
-    private Philosopher owner;
+    private Philosopher owner; // for debugging
 
     public Chopstick(int id) {
       owner = null;
@@ -155,6 +161,8 @@ public class DiningPhilosophers {
       _id = id;
     }
 
+    // prevents philosopher from reaching for a chopstick that is
+    // in the middle of being locked by another
     public synchronized boolean take(Philosopher p) {
       boolean retVal;
       String err;
@@ -185,6 +193,7 @@ public class DiningPhilosophers {
         owner = null;
         retVal = true;
       } else {
+        // you can't return a chopstick you don't have
         err = "FAIL";
         retVal = false;
       }
