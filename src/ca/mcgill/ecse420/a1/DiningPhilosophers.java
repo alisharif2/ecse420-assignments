@@ -50,7 +50,9 @@ public class DiningPhilosophers {
     private int _nChopsticks;
     private int _id;
     private t_state _currentState;
-    private int _starvation; // 100 = dead
+    private int _starvation;
+    
+    private static final ReentrantLock mutex = new ReentrantLock();
 
     public Philosopher(int id) {
       _currentState = t_state.THINKING;
@@ -87,10 +89,14 @@ public class DiningPhilosophers {
           case ACQUIRING:
             // retrieve chopsticks slowly
             // 2 update ticks minimum
-            if (_nChopsticks == 2)
+            if (_nChopsticks == 2) {
+              mutex.unlock();
               _currentState = t_state.EATING;
+            }
             else {
-              get_single_chopstick();
+              if(mutex.tryLock()) {
+                get_single_chopstick();
+              }
             }
             ++_starvation;
             break;
