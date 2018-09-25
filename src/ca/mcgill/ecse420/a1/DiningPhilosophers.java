@@ -26,32 +26,35 @@ public class DiningPhilosophers {
     for (int i = 0; i < numberOfPhilosophers; ++i) {
       executor.execute(philosophers[i]);
     }
-    
+
     executor.shutdown();
-    
+
   }
-  
+
 
   public static class Philosopher implements Runnable {
 
     // global constants
+
+    // controls how fast they move and how quickly they starve
     private static final int waitTime = 10; // milliseconds
-    private static final int _max_starvation = 100;
-    private static final int _hunger = 80;
-    
+    private static final int _max_starvation = 100; // when they die
+    private static final int _hunger = 80; // point they get hungry
+
     private static enum t_state {
       EATING, THINKING, ACQUIRING
     }
-    
+
     // mutable members
     private Chopstick[] _chopsticks = {null, null};
-    private int _nChopsticks = 0;
+    private int _nChopsticks;
     private int _id;
     private t_state _currentState;
     private int _starvation; // 100 = dead
 
     public Philosopher(int id) {
       _currentState = t_state.THINKING;
+      _nChopsticks = 0;
       _starvation = 0;
       _id = id;
     }
@@ -60,77 +63,75 @@ public class DiningPhilosophers {
     public void run() {
       while (true) {
         try {
-          
-          // controls how fast they move and how quickly they starve
           Thread.sleep(waitTime);
-          
-          if(_starvation >= _max_starvation) {
-            System.out.println(String.format("P%d has died", _id));
-            return;
-          }
-          
-          switch (_currentState) {
-            case THINKING:
-              if(_starvation > _hunger) _currentState = t_state.ACQUIRING;
-              ++_starvation;
-              break;
-              
-            case ACQUIRING:
-              // retrieve chopsticks slowly
-              // 2 update ticks minimum
-              if(_nChopsticks == 2) _currentState = t_state.EATING;
-              else {
-                get_single_chopstick();
-              }
-              ++_starvation;
-              break;
-              
-            case EATING:
-              // can't eat instantly
-              if(_starvation <= 0)
-              {
-                // done eating
-                _currentState = t_state.THINKING;
-                returnChopsticks();
-              }
-              else {
-                // keep eating
-                --_starvation;
-              }
-              break;
-              
-            default:
-              System.out.println("Invalid state");
-              break;
-          }
 
         } catch (InterruptedException e) {
           e.printStackTrace();
+          System.err.println(String.format("P%d thread could not sleep\nTerminating thread", _id));
+          return;
         }
+
+        if (_starvation >= _max_starvation) {
+          System.out.println(String.format("P%d has died", _id));
+          return;
+        }
+
+        switch (_currentState) {
+          case THINKING:
+            if (_starvation > _hunger) {
+              _currentState = t_state.ACQUIRING;
+            }
+            ++_starvation;
+            break;
+
+          case ACQUIRING:
+            // retrieve chopsticks slowly
+            // 2 update ticks minimum
+            if (_nChopsticks == 2)
+              _currentState = t_state.EATING;
+            else {
+              get_single_chopstick();
+            }
+            ++_starvation;
+            break;
+
+          case EATING:
+            // can't eat instantly
+            if (_starvation <= 0) {
+              // done eating
+              _currentState = t_state.THINKING;
+              returnChopsticks();
+            } else {
+              // keep eating
+              --_starvation;
+            }
+            break;
+
+          default:
+            System.out.println("Invalid state");
+            break;
+        }
+
+
       }
     }
 
-    public boolean get_single_chopstick() throws InterruptedException {      
+    public boolean get_single_chopstick() {
       System.out.println(String.format("P%d attempting to acquire a chopstick", _id));
-      
+
       boolean ret = false;
-      
+
       // only try to acquire a chopstick once
       // loop through all chopsticks and take any free one
-      for(int i = 0; i < numberOfChopsticks;++i) {
+      for (int i = 0; i < numberOfChopsticks; ++i) {
         if (chopsticks[i].take(this)) {
           _chopsticks[_nChopsticks] = chopsticks[i];
           ++_nChopsticks;
-          
+
           System.out.println(String.format("P%d acquired C%d", _id, chopsticks[i]._id));
           ret = true;
           break;
         }
-      }
-      
-      if(!ret)
-      {
-        System.out.println(String.format("P%d could not acquire chopstick", _id));
       }
 
       return ret;
