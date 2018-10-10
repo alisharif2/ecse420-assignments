@@ -1,12 +1,10 @@
 package ca.mcgill.ecse420.a1;
 
-
 import java.util.*;
-
 
 public class MatrixMultiplication {
 	
-	private static  int NUMBER_THREADS = 1;
+	private static final int NUMBER_THREADS = 2;
 	private static final int MATRIX_SIZE = 1000;
 	private static final int MINIMUM_WORK_LOAD = 10_000;
 
@@ -15,8 +13,16 @@ public class MatrixMultiplication {
 		// Generate two random matrices, same size
     		double[][] a = generateRandomMatrix(MATRIX_SIZE, MATRIX_SIZE);
     		double[][] b = generateRandomMatrix(MATRIX_SIZE, MATRIX_SIZE);
-    		sequentialMultiplyMatrix(a, b);
-    		parallelMultiplyMatrix(a, b);	
+    		long startTime = System.nanoTime();
+    			sequentialMultiplyMatrix(a, b);
+    		long endTime   = System.nanoTime();
+    		System.out.println("sequential time is " + (endTime-startTime)/10000);
+    		
+    		 startTime = System.nanoTime();
+    		 	parallelMultiplyMatrix(a, b);	
+    		 endTime   = System.nanoTime();
+		 System.out.println("parallel time is " + (endTime-startTime)/10000);
+    		
 	}
 	
 	/**
