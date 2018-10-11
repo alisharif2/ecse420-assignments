@@ -1,18 +1,14 @@
 package ca.mcgill.ecse420.a1;
-
-import java.util.Random;
+ import java.util.Random;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-@SuppressWarnings("InfiniteLoopStatement")
+ @SuppressWarnings("InfiniteLoopStatement")
 public class Runner {
-
-    private Account acc1 = new Account();
+     private Account acc1 = new Account();
     private Account acc2 = new Account();
     private Lock lock1 = new ReentrantLock();
     private Lock lock2 = new ReentrantLock();
-
-    //don't hold several locks at once. If you do, always acquire the locks in the same order
+     //don't hold several locks at once. If you do, always acquire the locks in the same order
     //try to get the both locks
     private void acquireLocks(Lock firstLock, Lock secondLock) throws InterruptedException {
         while (true) {
@@ -38,8 +34,7 @@ public class Runner {
             Thread.sleep(1);
         }
     }
-
-    //firstThread runs
+     //firstThread runs
     public void firstThread() throws InterruptedException {
         Random random = new Random();
         for (int i = 0; i < 10000; i++) {
@@ -52,8 +47,7 @@ public class Runner {
             }
         }
     }
-
-    //SecondThread runs
+     //SecondThread runs
     public void secondThread() throws InterruptedException {
         Random random = new Random();
         for (int i = 0; i < 10000; i++) {
@@ -66,11 +60,10 @@ public class Runner {
             }
         }
     }
-
-    //When both threads finish execution, finished runs
+     //When both threads finish execution, finished runs
     public void finished() {
         System.out.println("Account 1 balance: " + acc1.getBalance());
         System.out.println("Account 2 balance: " + acc2.getBalance());
         System.out.println("Total balance: " + (acc1.getBalance() + acc2.getBalance()));
     }
-}
+} 
