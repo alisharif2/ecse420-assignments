@@ -2,7 +2,7 @@ package ca.mcgill.ecse420.a2;
 
 import java.lang.Thread;
 
-public class FilterLock {
+public class FilterLock implements Lock {
 
   private int N; // # of levels
   private volatile int[] level;
@@ -17,14 +17,6 @@ public class FilterLock {
     }
   }
 
-  public void lock(int id) {
-    for(int i = 1;i < N; ++i) {
-      level[id] = i; // set target level to i
-      victim[i] = id; // wait for another thread to set its target level to i
-      while(victim [i] == id && lvl_chk(id, i)) {}
-    }
-  }
-
   private boolean lvl_chk(int i, int j) {
     // check all threads
     for(int k = 0; k < N;++k) {
@@ -33,60 +25,56 @@ public class FilterLock {
     }
     return false;
   }
+  
+  @Override
+  public void lock(int id) {
+    for(int i = 1;i < N; ++i) {
+      level[id] = i; // set target level to i
+      victim[i] = id; // wait for another thread to set its target level to i
+      while(victim [i] == id && lvl_chk(id, i)) {}
+    }
+  }
 
+  @Override
   public void unlock(int id) {
     level[id] = 0;
   }
 
-  public static FilterLock f;
-
-  public static class TestThread implements Runnable {
-    public static volatile boolean alive; // Used to end the run() method
-    private int id; // Thread id
-    public TestThread(int id) {
-      alive = true;
-      this.id = id;
-    }
-
-    @Override
-    public void run() {
-      while(alive) {
-        try {
-          f.lock(this.id);
-          System.out.println(String.format("Thread %d has entered critical section", id));
-          Thread.sleep(10); // Do some processing
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        } finally {
-          f.unlock(this.id);
-        }
-
-      }
-
-    }
-
-  }
-
   public static void main(String[] args) {
     final int n = 3; // problem size
+    final long test_time = 10000;
 
-    f = new FilterLock(n);
+    FilterLock f = new FilterLock(n);
 
+    TestThreadJob jobs[] = new TestThreadJob[n];
     Thread[] t = new Thread[n];
-    // Create thread objects to execute runnable
+    // Create thread objects to execute runnable jobs
     for(int i = 0;i < n;++i) {
-      t[i] = new Thread(new TestThread(i));
+      jobs[i] = new TestThreadJob(i, f, (short)(i+1));
+      t[i] = new Thread(jobs[i]);
       t[i].start();
     }
 
+    // Let the test run for a while
     try {
-      Thread.sleep(1000);
+      Thread.sleep(test_time);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
 
-    TestThread.alive = false;
+    TestThreadJob.alive = false; // end all threads
+    for(int i = 0;i < n;++i) {
+      try {
+        t[i].join();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+    
+    System.out.println("How many times each job entered it's critical section");
+    for(int i = 0;i < n;++i) {
+      System.out.println(String.format("Thread %d: %d", i, jobs[i].get_csec_count()));
+    }
 
   }
-
 }
