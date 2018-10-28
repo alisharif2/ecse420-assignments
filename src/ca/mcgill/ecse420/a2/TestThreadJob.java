@@ -4,9 +4,9 @@ import java.util.Random;
 
 public class TestThreadJob implements Runnable {
   public static volatile boolean alive; // Used to end the run() method
-  private static final int MAX_WAIT = 100;
+  private static final int MAX_WAIT = 40;
   private int id; // Thread id
-  private short penalty; // All threads will not wait equally if this value is different
+  private short penalty; // a higher value means sleeping for longer
   private Lock f;
   private Random r;
   private int csec_count; // how many times the thead entered its critical section

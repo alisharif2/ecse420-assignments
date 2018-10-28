@@ -1,7 +1,5 @@
 package ca.mcgill.ecse420.a2;
 
-import java.lang.Thread;
-
 public class FilterLock implements Lock {
 
   private int N; // # of levels
@@ -41,40 +39,7 @@ public class FilterLock implements Lock {
   }
 
   public static void main(String[] args) {
-    final int n = 3; // problem size
-    final long test_time = 10000;
-
-    FilterLock f = new FilterLock(n);
-
-    TestThreadJob jobs[] = new TestThreadJob[n];
-    Thread[] t = new Thread[n];
-    // Create thread objects to execute runnable jobs
-    for(int i = 0;i < n;++i) {
-      jobs[i] = new TestThreadJob(i, f, (short)(i+1));
-      t[i] = new Thread(jobs[i]);
-      t[i].start();
-    }
-
-    // Let the test run for a while
-    try {
-      Thread.sleep(test_time);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-
-    TestThreadJob.alive = false; // end all threads
-    for(int i = 0;i < n;++i) {
-      try {
-        t[i].join();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-    }
-    
-    System.out.println("How many times each job entered it's critical section");
-    for(int i = 0;i < n;++i) {
-      System.out.println(String.format("Thread %d: %d", i, jobs[i].get_csec_count()));
-    }
-
+    Tester t = new Tester(new FilterLock(3), 3);
+    t.run();
   }
 }
