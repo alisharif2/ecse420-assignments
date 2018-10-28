@@ -1,5 +1,7 @@
 package ca.mcgill.ecse420.a2;
 
+import java.util.Stack;
+
 public class Tester {
   
   private Lock f;
@@ -13,6 +15,8 @@ public class Tester {
   public void run() {
     final long test_time = 1000;
 
+    TestThreadJob.run_mutex_test();
+    
     TestThreadJob jobs[] = new TestThreadJob[n];
     Thread[] t = new Thread[n];
     // Create thread objects to execute runnable jobs
@@ -43,5 +47,8 @@ public class Tester {
     for(int i = 0;i < n;++i) {
       System.out.println(String.format("Thread %d: %d", i, jobs[i].get_csec_count()));
     }
+    
+    TestThreadJob.print_mutex_test_results();
+    
   }
 }
