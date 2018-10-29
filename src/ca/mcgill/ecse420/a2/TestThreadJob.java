@@ -39,7 +39,7 @@ public class TestThreadJob implements Runnable {
   }
   
   public static void print_mutex_test_results() {
-    if(!mutex_test) return;
+    if(!mutex_test && !alive) return;
     
     int j = 0;
     boolean fail = false;
