@@ -5,7 +5,7 @@ import java.util.Stack;
 
 public class TestThreadJob implements Runnable {
   public static volatile boolean alive; // Used to end the run() method
-  private static final int MAX_WAIT = 40;
+  private static final int MAX_WAIT = 20;
   private static Stack<Integer> s = new Stack<>();
   private int id; // Thread id
   private short penalty; // a higher value means sleeping for longer

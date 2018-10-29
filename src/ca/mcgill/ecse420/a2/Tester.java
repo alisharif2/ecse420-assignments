@@ -6,13 +6,15 @@ public class Tester {
   
   private Lock f;
   private int n;
+  public boolean use_penalty;
   
   public Tester(Lock f, int n) {
     this.f = f;
     this.n = n;
+    this.use_penalty = false;
   }
   
-  public void run() {
+  public void execute_test() {
     final long test_time = 1000;
 
     TestThreadJob.run_mutex_test();
@@ -22,7 +24,9 @@ public class Tester {
     // Create thread objects to execute runnable jobs
     for(int i = 0;i < n;++i) {
       // Create each job with an execution penalty proportional to id
-      jobs[i] = new TestThreadJob(i, f, (short)(i+1));
+      if(use_penalty) jobs[i] = new TestThreadJob(i, f, (short)(i+1));
+      else jobs[i] = new TestThreadJob(i, f);
+      
       t[i] = new Thread(jobs[i]); // create thread objects to execute the jobs
       t[i].start();
     }

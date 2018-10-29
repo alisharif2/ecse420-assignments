@@ -40,6 +40,9 @@ public class FilterLock implements Lock {
 
   public static void main(String[] args) {
     Tester t = new Tester(new FilterLock(3), 3);
-    t.run();
+    // Uncommentting this line makes each thread take different amounts of time
+    // in their respective critical sections and outside
+    // t.use_penalty = true;
+    t.execute_test();
   }
 }

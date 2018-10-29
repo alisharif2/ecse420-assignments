@@ -48,6 +48,9 @@ public class BakeryLock implements Lock {
   
   public static void main(String[] args) {
     Tester t = new Tester(new BakeryLock(3), 3);
-    t.run();
+    // Uncommentting this line makes each thread take different amounts of time
+    // in their respective critical sections and outside
+    // t.use_penalty = true;
+    t.execute_test();
   }
 }
