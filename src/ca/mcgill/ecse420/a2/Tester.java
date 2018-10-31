@@ -1,7 +1,5 @@
 package ca.mcgill.ecse420.a2;
 
-import java.util.Stack;
-
 public class Tester {
   
   private Lock f;
