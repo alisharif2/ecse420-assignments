@@ -63,7 +63,7 @@ public class TestThreadJob implements Runnable {
     while(alive) {
       try {
         f.lock(this.id);
-        //System.out.println(String.format("Thread %d has entered critical section", id));
+        System.out.println(String.format("Thread %d has entered critical section", id));
         ++csec_count;
         int top = -1;
         if(mutex_test) top = s.peek();

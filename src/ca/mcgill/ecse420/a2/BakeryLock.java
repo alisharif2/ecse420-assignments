@@ -2,8 +2,8 @@ package ca.mcgill.ecse420.a2;
 
 public class BakeryLock implements Lock {
   private int N;
-  volatile boolean[] flag;
-  volatile int[] label;
+  private volatile boolean[] flag;
+  private volatile int[] label;
   
   public BakeryLock(int n) {
     this.N = n;
@@ -47,10 +47,11 @@ public class BakeryLock implements Lock {
   
   
   public static void main(String[] args) {
-    Tester t = new Tester(new BakeryLock(3), 3);
+    System.out.println("BakeryLock test executing....");
+    Tester t = new Tester(new BakeryLock(6), 6);
     // Uncommentting this line makes each thread take different amounts of time
     // in their respective critical sections and outside
-    // t.use_penalty = true;
+    t.use_penalty = true;
     t.execute_test();
   }
 }

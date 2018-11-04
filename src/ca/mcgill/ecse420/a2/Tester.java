@@ -20,7 +20,7 @@ public class Tester {
   }
   
   public void execute_test() {
-    final long test_time = 1000;
+    final long test_time = 5000;
 
     TestThreadJob.run_mutex_test();
     
