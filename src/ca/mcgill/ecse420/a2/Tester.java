@@ -52,7 +52,7 @@ public class Tester {
         thread_pool.shutdownNow();
         if(!thread_pool.awaitTermination(1000, TimeUnit.MILLISECONDS))
         {
-          System.out.println("Could not shtudown threads");
+          System.err.println("Could not shtudown threads");
         }
       }
     } catch (InterruptedException e) {
