@@ -10,26 +10,28 @@ public class FilterLock implements Lock {
     N = n;
     level = new int[n];
     victim = new int[n];
-    for(int i = 0;i < n;++i) {
-      level[i] = 0; 
+    for (int i = 0; i < n; ++i) {
+      level[i] = 0;
     }
   }
 
   private boolean lvl_chk(int i, int j) {
     // check all threads
-    for(int k = 0; k < N;++k) {
+    for (int k = 0; k < N; ++k) {
       // does a thread k want to enter level j?
-      if(k != i && level[k] >= j) return true;
+      if (k != i && level[k] >= j)
+        return true;
     }
     return false;
   }
-  
+
   @Override
   public void lock(int id) {
-    for(int i = 1;i < N; ++i) {
+    for (int i = 1; i < N; ++i) {
       level[id] = i; // set target level to i
       victim[i] = id; // wait for another thread to set its target level to i
-      while(victim [i] == id && lvl_chk(id, i)) {}
+      while (victim[i] == id && lvl_chk(id, i)) {
+      }
     }
   }
 

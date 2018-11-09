@@ -32,7 +32,7 @@ public class Tester {
       if(use_penalty) 
         jobs[i] = new TestThreadJob(i, f, (short)(i+1));
       else 
-        jobs[i] = new TestThreadJob(i, f);
+        jobs[i] = new TestThreadJob(i, f); // use default penalty of 1
       
       thread_pool.execute(jobs[i]);
     }

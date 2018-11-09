@@ -4,13 +4,13 @@ public class LockThree implements Lock {
 
   private int turn;
   private boolean busy;
-  
+
   public static void main(String[] args) {
     System.out.println("LockThree test executing....");
     Tester t = new Tester(new LockThree(), 6);
     t.execute_test();
   }
-  
+
   public LockThree() {
     busy = false;
   }
@@ -18,10 +18,9 @@ public class LockThree implements Lock {
   @Override
   public void lock(int id) {
     turn = id;
-    do
-    {
+    do {
       busy = true;
-    } while(turn == id && busy);
+    } while (turn == id && busy);
   }
 
   @Override

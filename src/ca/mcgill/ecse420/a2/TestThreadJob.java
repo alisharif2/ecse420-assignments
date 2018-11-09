@@ -13,74 +13,79 @@ public class TestThreadJob implements Runnable {
   private Random r;
   private int csec_count; // how many times the thead entered its critical section
   private static boolean mutex_test = false;
-  
+
   public TestThreadJob(int id, Lock f) {
     alive = true;
     this.id = id;
     this.f = f;
     this.r = new Random();
-    this.penalty = 1;
+    this.penalty = 1; // default penalty is no penalty
     this.csec_count = 0;
   }
-  
+
   public TestThreadJob(int id, Lock f, short penalty) {
     this(id, f);
     this.penalty = penalty;
   }
-  
-  public int get_csec_count()
-  {
+
+  public int get_csec_count() {
     return csec_count;
   }
-  
+
+  // Need to execute this so that results are collected
   public static void run_mutex_test() {
-    s.push(0);
+    s.push(0); // Initial value required for tests
     mutex_test = true;
   }
-  
+
   public static void print_mutex_test_results() {
-    if(!mutex_test && !alive) return;
-    
+    if (!mutex_test && !alive)
+      return;
+
+    // Ensure stack represents whole numbers
     int j = 0;
     boolean fail = false;
-    for(Integer i : s) {
-      if(i != j++) {
+    for (Integer i : s) {
+      if (i != j++) {
         fail = true;
         break;
       }
     }
-    if(fail) {
+    if (fail) {
       System.out.println("Mutex Test Failed");
       System.out.println(s);
-    }
-    else {
+    } else {
       System.out.println("Mutex Test Passed");
     }
   }
-  
+
   @Override
   public void run() {
-    while(alive) {
+    while (alive) {
       try {
-        f.lock(this.id);
+        f.lock(this.id); // attempt to enter critical section
         System.out.println(String.format("Thread %d has entered critical section", id));
         ++csec_count;
         int top = -1;
-        if(mutex_test) top = s.peek();
-        Thread.sleep(r.nextInt(MAX_WAIT) * penalty + 1); // Do some processing inside critical section
-        if(mutex_test) s.push(top + 1);
+        if (mutex_test)
+          top = s.peek();
+        Thread.sleep(r.nextInt(MAX_WAIT) * penalty + 1); // Do some processing inside critical
+        // section
+        if (mutex_test)
+          s.push(top + 1);
       } catch (InterruptedException e) {
         e.printStackTrace();
       } finally {
         f.unlock(this.id);
       }
       
+      // outside critical section
       try {
         Thread.sleep(r.nextInt(MAX_WAIT) * penalty + 1); // Do something outside critical section
       } catch (InterruptedException e) {
         e.printStackTrace();
-      } 
-      
+      }
+
     }
   }
 }
