@@ -10,9 +10,18 @@ public class MatrixTask {
   
   static Matrix add(Matrix a, Matrix b) throws InterruptedException, ExecutionException {
     if(a.col_size != b.col_size || a.row_size != b.row_size) return null;
-    Matrix sum = new Matrix(a.row_size, a.col_size);
+    
+    Matrix sum = null;
+    if(a.col_size == a.row_size)
+      sum = new SquareMatrix(a.row_size);
+    else if(a.col_size == 1)
+      sum = new ColumnVector(a.row_size);
+    else
+      sum = new Matrix(a.row_size, a.col_size);
+    
     Future<?> future = exec.submit(new AddTask(a, b, sum));
     future.get();
+    
     return sum;
   }
   
@@ -36,7 +45,7 @@ public class MatrixTask {
           c.set(0, 0, a.get(0, 0) + b.get(0, 0));
         } else {
           Matrix[][] aa = a.split(), bb = b.split(), cc = c.split();
-          
+
           int futures_x = 1, futures_y = 1;
           if(c.row_size >= 2) futures_x = 2;
           if(c.col_size >= 2) futures_y = 2;

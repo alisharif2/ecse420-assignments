@@ -5,8 +5,8 @@ import java.util.concurrent.ExecutionException;
 public class MatrixTester {
 
   public static void main(String[] args) {
-    SquareMatrix a = SquareMatrix.rand_gen(6);
-    SquareMatrix b = SquareMatrix.rand_gen(6);
+    SquareMatrix a = SquareMatrix.rand_gen(4);
+    SquareMatrix b = SquareMatrix.rand_gen(4);
 
     Matrix c = null;
 

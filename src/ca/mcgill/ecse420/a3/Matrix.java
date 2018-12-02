@@ -33,7 +33,7 @@ public class Matrix {
   
   // doesn't have a body. please override
   public Matrix[][] split() throws Exception {
-    return null;
+    throw new Exception();
   }
   
   public static Matrix rand_gen(int row_size, int col_size) {
