@@ -5,8 +5,8 @@ import java.util.concurrent.ExecutionException;
 public class MatrixTester {
 
   public static void main(String[] args) {
-    SquareMatrix a = SquareMatrix.identity_matrix(8);
-    SquareMatrix b = SquareMatrix.rand_gen(8);
+    SquareMatrix a = SquareMatrix.rand_gen(4);
+    ColumnVector b = ColumnVector.rand_gen(4);
 
     Matrix c = null;
 
@@ -25,7 +25,7 @@ public class MatrixTester {
     System.out.println(b);
     System.out.println("=");
     System.out.println(c);
-
+    System.out.println(c.compare(Matrix.seq_mult(a, b)));
     
   }
 
