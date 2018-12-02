@@ -66,16 +66,35 @@ public class Matrix {
   
   @Override
   public String toString() {
-    String str = "";
+    String str = "{ ";
     
     for(int i = 0;i < row_size;++i) {
-      str += "[ ";
+      if(i == 0)
+        str += "{ ";
+      else 
+        str += "  { ";
+        
       for(int j = 0;j < col_size - 1;++j) {
         str = str +  String.format("%.2e", this.get(i, j))  + ", ";
       }
-      str = str + String.format("%.2e", this.get(i, this.col_size -1)) + " ]\n";
+      str = str + String.format("%.2e", this.get(i, this.col_size -1)) + " }";
+      if(i != row_size - 1) {
+        str = str + ",\n";
+      }
     }
     
-    return str;
+    return str + " }";
+  }
+
+  public boolean equals(Matrix m) {
+    if(this.col_size == m.col_size && this.row_size == m.row_size) {
+      for(int i = 0;i < this.row_size;++i) {
+        for(int j = 0;j < this.col_size;++j) {
+          if(this.get(i, j) != m.get(i, j)) return false;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 }
