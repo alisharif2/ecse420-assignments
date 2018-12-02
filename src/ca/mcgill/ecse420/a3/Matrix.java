@@ -90,11 +90,17 @@ public class Matrix {
     if(this.col_size == m.col_size && this.row_size == m.row_size) {
       for(int i = 0;i < this.row_size;++i) {
         for(int j = 0;j < this.col_size;++j) {
-          if(this.get(i, j) != m.get(i, j)) return false;
+          if(!compare_doubles(this.get(i, j), m.get(i, j))) return false;
         }
       }
       return true;
     }
     return false;
+  }
+  
+  private boolean compare_doubles(double d1, double d2) {
+    if(d1 == d2) return true;
+    final double eps = 0.001; 
+    return Math.abs(d1 - d2) < (eps * Math.max(Math.abs(d1), Math.abs(d2)));
   }
 }
