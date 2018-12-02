@@ -71,4 +71,82 @@ public class MatrixTask {
     }
   }
 
+  static Matrix mult(Matrix a, Matrix b) throws InterruptedException, ExecutionException {
+    if(a.col_size != b.row_size) return null;
+    
+    Matrix product = null;
+    if(b.row_size == b.col_size)
+      product = new SquareMatrix(b.row_size);
+    else if(b.col_size == 1) 
+      product = new ColumnVector(b.row_size);
+    else
+      product = new Matrix(a.row_size, b.col_size);
+    
+    Future<?> future = exec.submit(new MultTask(a, b, product));
+    future.get();
+    
+    return product;
+  }
+  
+  private static class MultTask implements Runnable {
+    Matrix a, b, c, lhs, rhs;
+    public MultTask(Matrix a, Matrix b, Matrix c) {
+      this.a = a;
+      this.b = b;
+      this.c = c;
+      
+      if(b.col_size == 1) {
+        lhs = new ColumnVector(b.row_size);
+        rhs = new ColumnVector(b.row_size);
+      }
+      else if(b.row_size == b.col_size) {
+        lhs = new SquareMatrix(b.row_size);
+        rhs = new SquareMatrix(b.row_size);
+      }
+      else {
+        lhs = new Matrix(a.row_size, b.col_size);
+        rhs = new Matrix(a.row_size, b.col_size);
+      }
+    }
+    
+    @Override
+    public void run() {
+      try {
+        if(a.row_size == 1 && b.col_size == 1 && b.row_size == 1) {
+          c.set(0, 0, a.get(0, 0) * b.get(0, 0));
+        } else {
+          Matrix[][] aa = a.split(), bb = b.split(), cc = c.split(), ll = lhs.split(), rr = rhs.split();
+          
+          int futures_x = 1, futures_y = 1;
+          if(c.row_size >= 2) futures_x = 2;
+          if(c.col_size >= 2) futures_y = 2;
+          
+          Future<?>[][][] futures = (Future<?>[][][]) new Future[futures_x][futures_y][2];
+          
+          for(int i = 0;i < futures_x;++i) {
+            for(int j = 0;j < futures_y;++j) {
+              futures[i][j][0] = exec.submit(new MultTask(aa[i][0], bb[0][j], ll[i][j]));
+              futures[i][j][1] = exec.submit(new MultTask(aa[i][1], bb[1][j], rr[i][j]));
+            }
+          }
+          
+          for(int i = 0;i < futures_x;++i) {
+            for(int j = 0;j < futures_y;++j) {
+              for(int k = 0;k < 2;++k) {
+                futures[i][j][k].get();
+              }
+            }
+          }
+          
+          Future<?> done = exec.submit(new AddTask(lhs, rhs, c));
+          done.get();
+          
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    
+  }
+  
 }

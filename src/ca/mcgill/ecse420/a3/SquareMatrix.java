@@ -20,6 +20,16 @@ public class SquareMatrix extends Matrix {
     return sm;
   }
   
+  public static SquareMatrix identity_matrix(int dim) {
+    SquareMatrix sm = new SquareMatrix(dim);
+    
+    for(int i = 0;i < dim;++i) {
+      sm.set(i, i, 1);
+    }
+    
+    return sm;
+  }
+  
   @Override
   public SquareMatrix[][] split() throws Exception {
     SquareMatrix[][] result = new SquareMatrix[2][2];

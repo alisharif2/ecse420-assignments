@@ -5,13 +5,13 @@ import java.util.concurrent.ExecutionException;
 public class MatrixTester {
 
   public static void main(String[] args) {
-    SquareMatrix a = SquareMatrix.rand_gen(4);
-    SquareMatrix b = SquareMatrix.rand_gen(4);
+    SquareMatrix a = SquareMatrix.identity_matrix(8);
+    SquareMatrix b = SquareMatrix.rand_gen(8);
 
     Matrix c = null;
 
     try {
-      c = MatrixTask.add(a, b);
+      c = MatrixTask.mult(a, b);
     } catch (InterruptedException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -21,7 +21,7 @@ public class MatrixTester {
     }
     
     System.out.println(a);
-    System.out.println("+");
+    System.out.println("*");
     System.out.println(b);
     System.out.println("=");
     System.out.println(c);
