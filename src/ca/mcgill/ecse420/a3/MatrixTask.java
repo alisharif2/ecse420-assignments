@@ -52,8 +52,8 @@ public class MatrixTask {
         int row_size = a.row_size;
         int col_size = a.col_size;
         
-        if(row_size == 1 && col_size == 1) {
-          c.set(0, 0, a.get(0, 0) + b.get(0, 0));
+        if(row_size <= MIN_SIZE && col_size <= MIN_SIZE) {
+          in_place_addition(a, b, c);
         } else {
           Matrix[][] aa = a.split(), bb = b.split(), cc = c.split();
 
@@ -135,8 +135,8 @@ public class MatrixTask {
     @Override
     public void run() {
       try {
-        if(a.row_size == 1 && b.col_size == 1 && b.row_size == 1) {
-          c.set(0, 0, a.get(0, 0) * b.get(0, 0));
+        if(a.row_size <= MIN_SIZE && b.row_size <= MIN_SIZE) {
+          in_place_mult(a, b, c);
         } else {
           Matrix[][] aa = a.split(), bb = b.split(), cc = c.split(), ll = lhs.split(), rr = rhs.split();
           
