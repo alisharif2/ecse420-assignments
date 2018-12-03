@@ -4,9 +4,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class MatrixTask {
-  static ExecutorService exec = Executors.newCachedThreadPool();
+  public static ExecutorService exec = null;
   
   static Matrix add(Matrix a, Matrix b) throws InterruptedException, ExecutionException {
     if(a.col_size != b.col_size || a.row_size != b.row_size) return null;
