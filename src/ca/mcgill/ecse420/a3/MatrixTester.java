@@ -27,7 +27,7 @@ public class MatrixTester {
     
     
     SquareMatrix a = SquareMatrix.rand_gen(problem_size);
-    SquareMatrix b = SquareMatrix.rand_gen(problem_size);
+    ColumnVector b = ColumnVector.rand_gen(problem_size);
 
     Matrix parallel_result = null, sequential_result = null;
 
@@ -40,7 +40,7 @@ public class MatrixTester {
     
     start_time = System.currentTimeMillis();
     try {
-      parallel_result = MatrixTask.mult(a, b);
+      parallel_result = SimpleParallizedMultiplier.mult(a, b);
     } catch (InterruptedException e) {
       e.printStackTrace();
     } catch (ExecutionException e) {
