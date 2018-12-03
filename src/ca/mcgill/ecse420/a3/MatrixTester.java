@@ -27,7 +27,7 @@ public class MatrixTester {
     nThreads = Math.max(0, nThreads);
     ExecutorService exec = Executors.newFixedThreadPool(nThreads);
     MatrixTask.exec = exec;
-    SimpleParallizedMultiplier.exec = exec;
+    SimpleParallelizedMultiplier.exec = exec;
     
     System.out.println("Problem Size: " + problem_size);
     System.out.println("Number of threads: " + nThreads);
@@ -47,7 +47,7 @@ public class MatrixTester {
     // Parallel Algorithm
     start_time = System.currentTimeMillis();
     try {
-      parallel_result = SimpleParallizedMultiplier.mult(a, b);
+      parallel_result = SimpleParallelizedMultiplier.mult(a, b);
     } catch (InterruptedException e) {
       e.printStackTrace();
     } catch (ExecutionException e) {

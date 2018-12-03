@@ -4,7 +4,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-public class SimpleParallizedMultiplier {
+public class SimpleParallelizedMultiplier {
 
   public static ExecutorService exec = null;
   
