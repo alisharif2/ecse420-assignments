@@ -126,7 +126,7 @@ public class MatrixTask {
       for(int i = 0;i < c.row_size;++i) {
         for(int j = 0;j < c.col_size;++j) {
           for(int k = 0;k < b.row_size;++k) {
-            c.set(i, j, a.get(i, k) * b.get(k, j));
+            c.set(i, j, c.get(i, j) + a.get(i, k) * b.get(k, j));
           }
         }
       }
@@ -138,7 +138,7 @@ public class MatrixTask {
         if(a.row_size <= MIN_SIZE && b.row_size <= MIN_SIZE) {
           in_place_mult(a, b, c);
         } else {
-          Matrix[][] aa = a.split(), bb = b.split(), cc = c.split(), ll = lhs.split(), rr = rhs.split();
+          Matrix[][] aa = a.split(), bb = b.split(), ll = lhs.split(), rr = rhs.split();
           
           int futures_x = 1, futures_y = 1;
           if(c.row_size >= 2) futures_x = 2;
