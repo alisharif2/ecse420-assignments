@@ -7,6 +7,8 @@ import java.util.concurrent.Future;
 public class MatrixTask {
   public static ExecutorService exec = null;
   
+  private static final int MIN_SIZE = 10;
+  
   static Matrix add(Matrix a, Matrix b) throws InterruptedException, ExecutionException {
     if(a.col_size != b.col_size || a.row_size != b.row_size) return null;
     
@@ -31,6 +33,16 @@ public class MatrixTask {
       this.a = a;
       this.b = b;
       this.c = c;
+    }
+    
+    private void in_place_addition(Matrix a, Matrix b, Matrix c) throws Exception {
+      if(a.row_size != b.row_size && b.col_size != a.col_size) throw new Exception();
+      
+      for(int i = 0;i < c.row_size;++i) {
+        for(int j = 0;j < c.col_size;++j) {
+          c.set(i, j, a.get(i, j) + b.get(i, j));
+        }
+      }
     }
     
     @Override
@@ -105,6 +117,18 @@ public class MatrixTask {
       else {
         lhs = new Matrix(a.row_size, b.col_size);
         rhs = new Matrix(a.row_size, b.col_size);
+      }
+    }
+    
+    private void in_place_mult(Matrix a, Matrix b, Matrix c) {
+      if(a.col_size != b.row_size) return;
+            
+      for(int i = 0;i < c.row_size;++i) {
+        for(int j = 0;j < c.col_size;++j) {
+          for(int k = 0;k < b.row_size;++k) {
+            c.set(i, j, a.get(i, k) * b.get(k, j));
+          }
+        }
       }
     }
     
