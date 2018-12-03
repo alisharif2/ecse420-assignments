@@ -25,9 +25,11 @@ public class MatrixTester {
     nThreads = Math.max(0, nThreads);
     MatrixTask.exec = Executors.newFixedThreadPool(nThreads);
     
+    System.out.println("Problem Size: " + problem_size);
+    System.out.println("Number of threads: " + nThreads);
     
     SquareMatrix a = SquareMatrix.rand_gen(problem_size);
-    ColumnVector b = ColumnVector.rand_gen(problem_size);
+    SquareMatrix b = SquareMatrix.rand_gen(problem_size);
 
     Matrix parallel_result = null, sequential_result = null;
 
@@ -64,7 +66,23 @@ public class MatrixTester {
     } catch (InterruptedException e) {
       MatrixTask.exec.shutdownNow();
       e.printStackTrace();
+    }
+    
+    SimpleParallizedMultiplier.exec.shutdown();
+    try {
+      if(!SimpleParallizedMultiplier.exec.awaitTermination(1000, TimeUnit.MILLISECONDS))
+      {
+        SimpleParallizedMultiplier.exec.shutdownNow();
+        if(!SimpleParallizedMultiplier.exec.awaitTermination(1000, TimeUnit.MILLISECONDS))
+        {
+          System.err.println("Could not shtudown threads");
+        }
+      }
+    } catch (InterruptedException e) {
+      SimpleParallizedMultiplier.exec.shutdownNow();
+      e.printStackTrace();
     }    
+    
   }
 
 }
