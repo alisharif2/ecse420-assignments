@@ -41,7 +41,7 @@ public class Matrix {
     
     for(int i = 0;i < result.row_size;++i) {
       for(int j = 0;j < result.col_size;++j) {
-        result.data[i][j] = 10 * rand.nextDouble();
+        result.data[i][j] = 100 * rand.nextDouble();
       }
       }
     

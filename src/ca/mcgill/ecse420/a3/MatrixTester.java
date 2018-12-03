@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MatrixTester {
 
-  public static final int N_THREADS_DEFAULT = 256;
+  public static final int N_THREADS_DEFAULT = 4;
   
   public static void main(String[] args) {
     
@@ -27,7 +27,7 @@ public class MatrixTester {
     
     
     SquareMatrix a = SquareMatrix.rand_gen(problem_size);
-    ColumnVector b = ColumnVector.rand_gen(problem_size);
+    SquareMatrix b = SquareMatrix.rand_gen(problem_size);
 
     Matrix parallel_result = null, sequential_result = null;
 
