@@ -1,6 +1,7 @@
 package ca.mcgill.ecse420.a3;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -16,6 +17,7 @@ public class MatrixTester {
       return;
     }
     
+    // Matrix dimensions
     int problem_size = Integer.parseInt(args[0]);
     
     int nThreads = N_THREADS_DEFAULT;
@@ -23,23 +25,26 @@ public class MatrixTester {
       nThreads = Integer.parseInt(args[1]);
     }
     nThreads = Math.max(0, nThreads);
-    MatrixTask.exec = Executors.newFixedThreadPool(nThreads);
+    ExecutorService exec = Executors.newFixedThreadPool(nThreads);
+    MatrixTask.exec = exec;
+    SimpleParallizedMultiplier.exec = exec;
     
     System.out.println("Problem Size: " + problem_size);
     System.out.println("Number of threads: " + nThreads);
     
+    // Can easily subsitute any kind of matrix here
     SquareMatrix a = SquareMatrix.rand_gen(problem_size);
     SquareMatrix b = SquareMatrix.rand_gen(problem_size);
 
     Matrix parallel_result = null, sequential_result = null;
-
     
+    // Sequential algorithm
     long start_time = System.currentTimeMillis();
     sequential_result = Matrix.seq_mult(a, b);
     long end_time = System.currentTimeMillis();
-    System.out.println(String.format("Sequential Multiplication: %d", (end_time - start_time)));
+    System.out.println(String.format("Sequential Multiplication: %d milliseconds", (end_time - start_time)));
     
-    
+    // Parallel Algorithm
     start_time = System.currentTimeMillis();
     try {
       parallel_result = SimpleParallizedMultiplier.mult(a, b);
@@ -49,39 +54,28 @@ public class MatrixTester {
       e.printStackTrace();
     }
     end_time = System.currentTimeMillis();
-    System.out.println(String.format("Parallel Multiplication: %d", (end_time - start_time)));
+    System.out.println(String.format("Parallel Multiplication: %d milliseconds", (end_time - start_time)));
     
+    
+    // Validate results using each other
     System.out.println("Are they equal? " + parallel_result.compare(sequential_result));
     
-    MatrixTask.exec.shutdown();
+    
+    // Shutdown executor safely
+    exec.shutdown();
     try {
-      if(!MatrixTask.exec.awaitTermination(1000, TimeUnit.MILLISECONDS))
+      if(!exec.awaitTermination(1000, TimeUnit.MILLISECONDS))
       {
-        MatrixTask.exec.shutdownNow();
-        if(!MatrixTask.exec.awaitTermination(1000, TimeUnit.MILLISECONDS))
+        exec.shutdownNow();
+        if(!exec.awaitTermination(1000, TimeUnit.MILLISECONDS))
         {
           System.err.println("Could not shtudown threads");
         }
       }
     } catch (InterruptedException e) {
-      MatrixTask.exec.shutdownNow();
+      exec.shutdownNow();
       e.printStackTrace();
     }
-    
-    SimpleParallizedMultiplier.exec.shutdown();
-    try {
-      if(!SimpleParallizedMultiplier.exec.awaitTermination(1000, TimeUnit.MILLISECONDS))
-      {
-        SimpleParallizedMultiplier.exec.shutdownNow();
-        if(!SimpleParallizedMultiplier.exec.awaitTermination(1000, TimeUnit.MILLISECONDS))
-        {
-          System.err.println("Could not shtudown threads");
-        }
-      }
-    } catch (InterruptedException e) {
-      SimpleParallizedMultiplier.exec.shutdownNow();
-      e.printStackTrace();
-    }    
     
   }
 

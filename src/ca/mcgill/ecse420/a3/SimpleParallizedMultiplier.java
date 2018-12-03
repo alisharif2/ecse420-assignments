@@ -2,14 +2,12 @@ package ca.mcgill.ecse420.a3;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class SimpleParallizedMultiplier {
 
-  public static ExecutorService exec =
-      Executors.newFixedThreadPool(MatrixTester.N_THREADS_DEFAULT);
-
+  public static ExecutorService exec = null;
+  
   public static Matrix mult(Matrix a, Matrix b) throws InterruptedException, ExecutionException {
     if (a.col_size != b.row_size)
       return null;
