@@ -29,19 +29,27 @@ public class MatrixTester {
     SquareMatrix a = SquareMatrix.rand_gen(problem_size);
     ColumnVector b = ColumnVector.rand_gen(problem_size);
 
-    Matrix c = null;
+    Matrix parallel_result = null, sequential_result = null;
 
+    
+    long start_time = System.currentTimeMillis();
+    sequential_result = Matrix.seq_mult(a, b);
+    long end_time = System.currentTimeMillis();
+    System.out.println(String.format("Sequential Multiplication: %d", (end_time - start_time)));
+    
+    
+    start_time = System.currentTimeMillis();
     try {
-      c = MatrixTask.mult(a, b);
+      parallel_result = MatrixTask.mult(a, b);
     } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     } catch (ExecutionException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
+    end_time = System.currentTimeMillis();
+    System.out.println(String.format("Parallel Multiplication: %d", (end_time - start_time)));
     
-    System.out.println(c.compare(Matrix.seq_mult(a, b)));
+    System.out.println("Are they equal? " + parallel_result.compare(sequential_result));
     
     MatrixTask.exec.shutdown();
     try {
