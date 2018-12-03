@@ -64,6 +64,21 @@ public class Matrix {
     return result;
   }
   
+  public static Matrix seq_add(Matrix a, Matrix b) {
+    if(a.row_size != b.row_size && b.col_size != a.col_size) return null;
+    
+    Matrix result = new Matrix(a.row_size, a.col_size);
+    
+    for(int i = 0;i < result.row_size;++i) {
+      for(int j = 0;j < result.col_size;++j) {
+        result.set(i, j, a.get(i, j) + b.get(i, j));
+      }
+    }
+    
+    
+    return result;
+  }
+  
   @Override
   public String toString() {
     String str = "{ ";
