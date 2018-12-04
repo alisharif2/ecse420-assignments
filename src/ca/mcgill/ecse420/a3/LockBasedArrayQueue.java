@@ -92,4 +92,14 @@ public class LockBasedArrayQueue<T> implements SimpleQueue<T> {
 
     return result;
   }
+  
+  @Override
+  public String toString() {
+    String str = "";
+    for(int i = 0;i < capacity;++i) {
+      if(store[i] != null)
+        str += store[i] + ", ";
+    }
+    return str;
+  }
 }

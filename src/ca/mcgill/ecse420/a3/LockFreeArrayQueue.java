@@ -70,4 +70,14 @@ public class LockFreeArrayQueue<T> implements SimpleQueue<T> {
       }
     }
   }
+  
+  @Override
+  public String toString() {
+    String str = "";
+    for(int i = 0;i < capacity;++i) {
+      if(store[i] != null)
+        str += store[i] + ", ";
+    }
+    return str;
+  }
 }
