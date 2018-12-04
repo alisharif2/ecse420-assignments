@@ -24,7 +24,7 @@ public class LockFreeArrayQueue<T> implements SimpleQueue<T> {
       int last = tail.get();
       if(last == tail.get()) {
         if(sz >= size.get()) {
-          if(store.get((last+1) % capacity) == null) {
+          if(store.get((last) % capacity) == null) {
             if(sz < capacity) {
               if(store.compareAndSet(last % capacity, null, x)) {
                 size.compareAndSet(sz, sz + 1);
@@ -35,6 +35,7 @@ public class LockFreeArrayQueue<T> implements SimpleQueue<T> {
           }
           else {
             size.compareAndSet(sz, sz + 1);
+            tail.compareAndSet(last, last + 1);
           }
         }
         else {
@@ -54,12 +55,15 @@ public class LockFreeArrayQueue<T> implements SimpleQueue<T> {
         if(sz <= size.get()) {
           if(store.get(first % capacity) != null) {
             result = store.getAndSet(first % capacity, null);
-            size.decrementAndGet();
-            head.incrementAndGet();
-            return result;
+            if(result != null) {
+              size.compareAndSet(sz, sz - 1);
+              head.compareAndSet(first, first + 1);
+              return result;
+            }
           }
           else {
             size.compareAndSet(sz, sz - 1);
+            head.compareAndSet(first, first + 1);
           }
         }
         else {
