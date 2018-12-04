@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class LockFreeArrayQueue<T> implements SimpleQueue<T> {
   private AtomicInteger size, head, tail;
-  private T[] store;
+  private AtomicReferenceArray<T> store;
   private int capacity;
 
   @SuppressWarnings("unchecked")
@@ -15,7 +15,7 @@ public class LockFreeArrayQueue<T> implements SimpleQueue<T> {
     tail = new AtomicInteger(0);
     size = new AtomicInteger(0);
 
-    store = (T[]) new Object[capacity];
+    store = new AtomicReferenceArray<>(capacity);
   }
 
   public void enq(T x) {
@@ -24,17 +24,17 @@ public class LockFreeArrayQueue<T> implements SimpleQueue<T> {
       int last = tail.get();
       if(last == tail.get()) {
         if(sz >= size.get()) {
-          if(store[(last+1) % capacity] == null) {
+          if(store.get((last+1) % capacity) == null) {
             if(sz < capacity) {
-              store[last % capacity] = x;
-              size.incrementAndGet();
-              tail.incrementAndGet();
-              return;
+              if(store.compareAndSet(last % capacity, null, x)) {
+                size.compareAndSet(sz, sz + 1);
+                tail.compareAndSet(last, last + 1);
+                return;
+              }
             }
           }
           else {
             size.compareAndSet(sz, sz + 1);
-            tail.compareAndSet(last, last + 1);
           }
         }
         else {
@@ -52,16 +52,14 @@ public class LockFreeArrayQueue<T> implements SimpleQueue<T> {
       int first = head.get();
       if(first == head.get()) {
         if(sz <= size.get()) {
-          if(store[first % capacity] != null) {
-            result = store[first % capacity];
-            store[first % capacity] = null;
+          if(store.get(first % capacity) != null) {
+            result = store.getAndSet(first % capacity, null);
             size.decrementAndGet();
             head.incrementAndGet();
             return result;
           }
           else {
             size.compareAndSet(sz, sz - 1);
-            head.compareAndSet(first, first + 1);
           }
         }
         else {
@@ -75,8 +73,8 @@ public class LockFreeArrayQueue<T> implements SimpleQueue<T> {
   public String toString() {
     String str = "";
     for(int i = 0;i < capacity;++i) {
-      if(store[i] != null)
-        str += store[i] + ", ";
+      if(store.get(i) != null)
+        str += store.get(i) + ", ";
     }
     return str;
   }
