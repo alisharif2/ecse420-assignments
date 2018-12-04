@@ -37,8 +37,7 @@ public class MatrixTester {
     single_test(problem_size);
     
     int successful_runs = 0;
-    long[][] results_table = new long[TEST_RUNS][];
-    
+    double[][] results_table = new double[TEST_RUNS][];
     for(int i = 0;i < TEST_RUNS;++i) {
       results_table[i] = single_test(problem_size);
       if(results_table[i][0] != -1) {
@@ -47,7 +46,6 @@ public class MatrixTester {
     }
     
     double par_avg = 0, seq_avg = 0;
-    // discard initial results
     for(int i = 0;i < TEST_RUNS;++i) {
       par_avg += results_table[i][0];
       seq_avg += results_table[i][1];
@@ -57,10 +55,10 @@ public class MatrixTester {
     seq_avg /= successful_runs;
     
     System.out.println(String.format(
-        "Average of %d parallel multiplication runs: %1.2f ms", successful_runs, par_avg));
+        "Average of %d parallel multiplication runs: %1.2f ns", successful_runs, par_avg));
     
     System.out.println(String.format(
-        "Average of %d sequential multiplication runs: %1.2f ms", successful_runs, seq_avg));
+        "Average of %d sequential multiplication runs: %1.2f ns", successful_runs, seq_avg));
         
     // Shutdown executor safely
     exec.shutdown();
@@ -80,7 +78,7 @@ public class MatrixTester {
     
   }
   
-  public static long[] single_test(int problem_size) {
+  public static double[] single_test(int problem_size) {
     // Can easily subsitute any kind of matrix here
     SquareMatrix a = SquareMatrix.rand_gen(problem_size);
     Matrix b = ColumnVector.rand_gen(problem_size);
@@ -88,13 +86,13 @@ public class MatrixTester {
     Matrix parallel_result = null, sequential_result = null;
     
     // Sequential algorithm
-    long start_time = System.currentTimeMillis();
+    double start_time = System.nanoTime();
     sequential_result = Matrix.seq_mult(a, b);
-    long end_time = System.currentTimeMillis();
-    long seq_benchmark = end_time - start_time;
+    double end_time = System.nanoTime();
+    double seq_benchmark = end_time - start_time;
     
     // Parallel Algorithm
-    start_time = System.currentTimeMillis();
+    start_time = System.nanoTime();
     try {
       parallel_result = SimpleParallelizedMultiplier.mult(a, b);
     } catch (InterruptedException e) {
@@ -102,18 +100,18 @@ public class MatrixTester {
     } catch (ExecutionException e) {
       e.printStackTrace();
     }
-    end_time = System.currentTimeMillis();
-    long par_benchmark = end_time - start_time;
+    end_time = System.nanoTime();
+    double par_benchmark = end_time - start_time;
     
-    long[] results;
+    double[] results;
     
     
     // Validate results using each other
     if(parallel_result.compare(sequential_result)) {
-      results = new long[] {par_benchmark, seq_benchmark};
+      results = new double[] {par_benchmark, seq_benchmark};
     }
     else {
-      results = new long[] {-1, -1};
+      results = new double[] {-1, -1};
     }
     return results;
   }
