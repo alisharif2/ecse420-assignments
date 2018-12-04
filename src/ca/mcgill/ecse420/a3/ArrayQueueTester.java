@@ -63,7 +63,7 @@ public class ArrayQueueTester {
         exec.shutdownNow();
         if(!exec.awaitTermination(1000, TimeUnit.MILLISECONDS))
         {
-          System.err.println("Could not shtudown threads");
+          System.err.println("\nCould not shtudown threads");
         }
       }
     } catch (InterruptedException e) {
