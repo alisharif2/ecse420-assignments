@@ -34,7 +34,7 @@ public class MatrixTester {
     
     // Can easily subsitute any kind of matrix here
     SquareMatrix a = SquareMatrix.rand_gen(problem_size);
-    SquareMatrix b = SquareMatrix.rand_gen(problem_size);
+    Matrix b = ColumnVector.rand_gen(problem_size);
 
     Matrix parallel_result = null, sequential_result = null;
     
