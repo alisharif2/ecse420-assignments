@@ -111,7 +111,7 @@ public class MatrixTester {
       results = new double[] {par_benchmark, seq_benchmark};
     }
     else {
-      results = new double[] {-1, -1};
+      results = new double[] {0, 0};
     }
     return results;
   }
