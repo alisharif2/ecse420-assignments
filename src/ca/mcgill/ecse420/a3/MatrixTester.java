@@ -25,6 +25,8 @@ public class MatrixTester {
     if(args.length >= 2) {
       nThreads = Integer.parseInt(args[1]);
     }
+    
+    // Use the same executor for each multiplier
     nThreads = Math.max(0, nThreads);
     ExecutorService exec = Executors.newFixedThreadPool(nThreads);
     MatrixTask.exec = exec;
@@ -40,7 +42,8 @@ public class MatrixTester {
     double[][] results_table = new double[TEST_RUNS][];
     for(int i = 0;i < TEST_RUNS;++i) {
       results_table[i] = single_test(problem_size);
-      if(results_table[i][0] != -1) {
+      // don't count run if no useful data generated
+      if(results_table[i][0] > 0) {
         ++successful_runs;
       }
     }
@@ -78,6 +81,7 @@ public class MatrixTester {
     
   }
   
+  // problem_size gives the matrix dimensions
   public static double[] single_test(int problem_size) {
     // Can easily subsitute any kind of matrix here
     SquareMatrix a = SquareMatrix.rand_gen(problem_size);
@@ -94,6 +98,7 @@ public class MatrixTester {
     // Parallel Algorithm
     start_time = System.nanoTime();
     try {
+      // can change which multiplier to use here
       parallel_result = SimpleParallelizedMultiplier.mult(a, b);
     } catch (InterruptedException e) {
       e.printStackTrace();
@@ -104,14 +109,13 @@ public class MatrixTester {
     double par_benchmark = end_time - start_time;
     
     double[] results;
-    
-    
     // Validate results using each other
     if(parallel_result.compare(sequential_result)) {
       results = new double[] {par_benchmark, seq_benchmark};
     }
     else {
-      results = new double[] {0, 0};
+      results = new double[] {0, 0}; // won't affect avg
+      // so basically discards results
     }
     return results;
   }
