@@ -13,10 +13,12 @@ public class SimpleParallelizedMultiplier {
       return null;
     Matrix c = new Matrix(a.row_size, b.col_size);
 
+    // use one row of matrix A as a row vector and one column of matrix B as a column vector
+    // take the dot product of those vectors and store the result in the appropriate position of matrix C
     Future<?>[][] f = new Future<?>[a.row_size][b.col_size];
     for (int i = 0; i < a.row_size; ++i) {
       for (int j = 0; j < b.col_size; ++j) {
-        f[i][j] = exec.submit(new Task(a, b, c, i, j));
+        f[i][j] = exec.submit(new DotProductEvaluator(a, b, c, i, j));
       }
     }
 
@@ -29,12 +31,12 @@ public class SimpleParallelizedMultiplier {
     return c;
   }
 
-  private static class Task implements Runnable {
+  private static class DotProductEvaluator implements Runnable {
 
     Matrix a, b, c;
     int row, col;
 
-    public Task(Matrix a, Matrix b, Matrix c, int row, int col) {
+    public DotProductEvaluator(Matrix a, Matrix b, Matrix c, int row, int col) {
       this.a = a;
       this.b = b;
       this.c = c;
@@ -45,6 +47,7 @@ public class SimpleParallelizedMultiplier {
     @Override
     public void run() {
       c.set(row, col, 0);
+      // dot product eval for given row and column
       for (int i = 0; i < a.col_size; ++i) {
         c.set(row, col, c.get(row, col) + a.get(row, i) * b.get(i, col));
       }
