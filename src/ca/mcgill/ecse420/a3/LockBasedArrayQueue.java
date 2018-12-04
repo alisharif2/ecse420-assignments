@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class LockBasedArrayQueue<T> {
+public class LockBasedArrayQueue<T> implements SimpleQueue<T> {
 
   private ReentrantLock enq_lock, deq_lock;
   private Condition not_empty, not_full;
@@ -92,120 +92,4 @@ public class LockBasedArrayQueue<T> {
 
     return result;
   }
-
-  public static void main(String[] args) {
-    final int N_CONSUMERS = 2;
-    final int N_PRODUCERS = 2;
-    final int N_THREADS = N_CONSUMERS + N_PRODUCERS;
-    final int SIZE = 100;
-    final int N_TRANSFERS = 100;
-
-    ExecutorService exec = Executors.newFixedThreadPool(N_THREADS);
-    LockBasedArrayQueue<Integer> q = new LockBasedArrayQueue<>(SIZE);
-
-    long start_time = System.currentTimeMillis();
-    
-    Future<?>[] producer_futures = new Future<?>[N_PRODUCERS];
-    for (int i = 0; i < N_PRODUCERS; ++i) {
-      producer_futures[i] = exec.submit(new ProducerTestThread(q, N_TRANSFERS));
-    }
-
-    ConsumerTestThread[] consumers = new ConsumerTestThread[N_CONSUMERS];
-    for (int i = 0; i < N_CONSUMERS; ++i) {
-      consumers[i] = new ConsumerTestThread(q);
-      exec.submit(consumers[i]);
-    }
-    
-    for(int i = 0;i < N_PRODUCERS;++i) {
-      try {
-        producer_futures[i].get();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      } catch (ExecutionException e) {
-        e.printStackTrace();
-      }
-    }
-    
-    // Shutdown executor safely
-    ConsumerTestThread.is_running = false;
-    ProducerTestThread.is_running = false;
-    exec.shutdown();
-    try {
-      if(!exec.awaitTermination(1000, TimeUnit.MILLISECONDS))
-      {
-        exec.shutdownNow();
-        if(!exec.awaitTermination(1000, TimeUnit.MILLISECONDS))
-        {
-          System.err.println("Could not shtudown threads");
-        }
-      }
-    } catch (InterruptedException e) {
-      exec.shutdownNow();
-      e.printStackTrace();
-    }
-    
-    int total = 0;
-    for(int i = 0;i < N_CONSUMERS;++i) {
-      total += consumers[i].counter;
-    }
-    
-    System.out.println("Total elements transfered: " + total);
-    System.out.println("Time taken: " + (System.currentTimeMillis() - start_time) + " milliseconds");
-    
-  }
-
-  public static class ProducerTestThread implements Runnable {
-
-    public static volatile boolean is_running = true;
-    private Random rand = new Random();
-    private LockBasedArrayQueue<Integer> q;
-    private int target;
-
-    public ProducerTestThread(LockBasedArrayQueue<Integer> q, int target) {
-      this.q = q;
-      this.target = target;
-    }
-
-    @Override
-    public void run() {
-      while (is_running && target > 0) {
-        q.enq(rand.nextInt());
-        --target;
-        try {
-          Thread.sleep(10);
-        } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-      }
-    }
-
-  }
-
-  private static class ConsumerTestThread implements Runnable {
-
-    public static volatile boolean is_running = true;
-    private LockBasedArrayQueue<Integer> q;
-    private int counter = 0;
-
-    public ConsumerTestThread(LockBasedArrayQueue<Integer> q) {
-      this.q = q;
-    }
-
-    @Override
-    public void run() {
-      while (is_running) {
-        if(q.deq() != null)
-          ++counter;
-        try {
-          Thread.sleep(10);
-        } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-      }
-    }
-
-  }
-
 }
