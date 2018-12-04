@@ -14,7 +14,8 @@ public class ArrayQueueTester {
     final int N_PRODUCERS = 2;
     final int N_THREADS = N_CONSUMERS + N_PRODUCERS;
     final int SIZE = 100;
-    final int N_TRANSFERS = 100;
+    final int N_TRANSFERS = 10;
+    final int TEST_TIME = 1000;
 
     ExecutorService exec = Executors.newFixedThreadPool(N_THREADS);
     SimpleQueue<Integer> concurrent_queue = new LockFreeArrayQueue<>(SIZE);
@@ -25,12 +26,6 @@ public class ArrayQueueTester {
     for (int i = 0; i < N_PRODUCERS; ++i) {
       producer_futures[i] = exec.submit(new ProducerTestThread(concurrent_queue, N_TRANSFERS));
     }
-
-    ConsumerTestThread[] consumers = new ConsumerTestThread[N_CONSUMERS];
-    for (int i = 0; i < N_CONSUMERS; ++i) {
-      consumers[i] = new ConsumerTestThread(concurrent_queue);
-      exec.submit(consumers[i]);
-    }
     
     for(int i = 0;i < N_PRODUCERS;++i) {
       try {
@@ -40,6 +35,22 @@ public class ArrayQueueTester {
       } catch (ExecutionException e) {
         e.printStackTrace();
       }
+    }
+    
+    System.out.println(concurrent_queue.toString());
+
+    ConsumerTestThread[] consumers = new ConsumerTestThread[N_CONSUMERS];
+    for (int i = 0; i < N_CONSUMERS; ++i) {
+      consumers[i] = new ConsumerTestThread(concurrent_queue);
+      exec.submit(consumers[i]);
+    }
+    
+    // let test run for a while
+    try {
+      Thread.sleep(TEST_TIME);
+    } catch (InterruptedException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
     }
     
     // Shutdown executor safely
@@ -65,7 +76,7 @@ public class ArrayQueueTester {
       total += consumers[i].counter;
     }
     
-    System.out.println("Total elements transfered: " + total);
+    System.out.println("\nTotal elements transfered: " + total);
     System.out.println("Time taken: " + (System.currentTimeMillis() - start_time) + " milliseconds");
     
   }
@@ -85,7 +96,7 @@ public class ArrayQueueTester {
     @Override
     public void run() {
       while (is_running && target > 0) {
-        q.enq(rand.nextInt());
+        q.enq(rand.nextInt(10));
         --target;
         try {
           Thread.sleep(10);
@@ -110,9 +121,14 @@ public class ArrayQueueTester {
 
     @Override
     public void run() {
+      Integer res = 0;
       while (is_running) {
-        if(q.deq() != null)
+        res = q.deq();
+        if(res != null)
+        {
           ++counter;
+          System.out.print("" + res + ", ");
+        }
         try {
           Thread.sleep(10);
         } catch (InterruptedException e) {
