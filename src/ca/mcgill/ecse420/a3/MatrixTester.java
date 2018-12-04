@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 public class MatrixTester {
 
   public static final int N_THREADS_DEFAULT = 4;
+  private final static int TEST_RUNS = 10;
   
   public static void main(String[] args) {
     
@@ -32,35 +33,35 @@ public class MatrixTester {
     System.out.println("Problem Size: " + problem_size);
     System.out.println("Number of threads: " + nThreads);
     
-    // Can easily subsitute any kind of matrix here
-    SquareMatrix a = SquareMatrix.rand_gen(problem_size);
-    Matrix b = ColumnVector.rand_gen(problem_size);
-
-    Matrix parallel_result = null, sequential_result = null;
+    // Warm up JVM
+    single_test(problem_size);
     
-    // Sequential algorithm
-    long start_time = System.currentTimeMillis();
-    sequential_result = Matrix.seq_mult(a, b);
-    long end_time = System.currentTimeMillis();
-    System.out.println(String.format("Sequential Multiplication: %d milliseconds", (end_time - start_time)));
+    int successful_runs = 0;
+    long[][] results_table = new long[TEST_RUNS][];
     
-    // Parallel Algorithm
-    start_time = System.currentTimeMillis();
-    try {
-      parallel_result = SimpleParallelizedMultiplier.mult(a, b);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    } catch (ExecutionException e) {
-      e.printStackTrace();
+    for(int i = 0;i < TEST_RUNS;++i) {
+      results_table[i] = single_test(problem_size);
+      if(results_table[i][0] != -1) {
+        ++successful_runs;
+      }
     }
-    end_time = System.currentTimeMillis();
-    System.out.println(String.format("Parallel Multiplication: %d milliseconds", (end_time - start_time)));
     
+    double par_avg = 0, seq_avg = 0;
+    // discard initial results
+    for(int i = 0;i < TEST_RUNS;++i) {
+      par_avg += results_table[i][0];
+      seq_avg += results_table[i][1];
+    }    
     
-    // Validate results using each other
-    System.out.println("Are they equal? " + parallel_result.compare(sequential_result));
+    par_avg /= successful_runs;
+    seq_avg /= successful_runs;
     
+    System.out.println(String.format(
+        "Average of %d parallel multiplication runs: %1.2f ms", successful_runs, par_avg));
     
+    System.out.println(String.format(
+        "Average of %d sequential multiplication runs: %1.2f ms", successful_runs, seq_avg));
+        
     // Shutdown executor safely
     exec.shutdown();
     try {
@@ -77,6 +78,44 @@ public class MatrixTester {
       e.printStackTrace();
     }
     
+  }
+  
+  public static long[] single_test(int problem_size) {
+    // Can easily subsitute any kind of matrix here
+    SquareMatrix a = SquareMatrix.rand_gen(problem_size);
+    Matrix b = ColumnVector.rand_gen(problem_size);
+
+    Matrix parallel_result = null, sequential_result = null;
+    
+    // Sequential algorithm
+    long start_time = System.currentTimeMillis();
+    sequential_result = Matrix.seq_mult(a, b);
+    long end_time = System.currentTimeMillis();
+    long seq_benchmark = end_time - start_time;
+    
+    // Parallel Algorithm
+    start_time = System.currentTimeMillis();
+    try {
+      parallel_result = SimpleParallelizedMultiplier.mult(a, b);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } catch (ExecutionException e) {
+      e.printStackTrace();
+    }
+    end_time = System.currentTimeMillis();
+    long par_benchmark = end_time - start_time;
+    
+    long[] results;
+    
+    
+    // Validate results using each other
+    if(parallel_result.compare(sequential_result)) {
+      results = new long[] {par_benchmark, seq_benchmark};
+    }
+    else {
+      results = new long[] {-1, -1};
+    }
+    return results;
   }
 
 }
