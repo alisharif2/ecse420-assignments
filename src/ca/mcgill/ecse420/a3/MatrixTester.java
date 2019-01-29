@@ -99,7 +99,7 @@ public class MatrixTester {
     start_time = System.nanoTime();
     try {
       // can change which multiplier to use here
-      parallel_result = SimpleParallelizedMultiplier.mult(a, b);
+      parallel_result = MatrixTask.mult(a, b);
     } catch (InterruptedException e) {
       e.printStackTrace();
     } catch (ExecutionException e) {

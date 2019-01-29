@@ -7,7 +7,7 @@ import java.util.concurrent.Future;
 public class MatrixTask {
   public static ExecutorService exec = null;
   
-  private static final int MIN_SIZE = 100;
+  private static final int MIN_SIZE = 200;
   
   static Matrix add(Matrix a, Matrix b) throws InterruptedException, ExecutionException {
     if(a.col_size != b.col_size || a.row_size != b.row_size) return null;
@@ -135,7 +135,7 @@ public class MatrixTask {
     @Override
     public void run() {
       try {
-        if(a.row_size <= MIN_SIZE && b.row_size <= MIN_SIZE) {
+        if(a.row_size <= MIN_SIZE) {
           in_place_mult(a, b, c);
         } else {
           Matrix[][] aa = a.split(), bb = b.split(), ll = lhs.split(), rr = rhs.split();
