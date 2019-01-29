@@ -1,0 +1,100 @@
+P4 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P4 acquired C0
+P1 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P3 acquired C3
+P1 acquired C2
+P2 acquired C1
+P0 acquired C4
+P4 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P4 attempting to acquire a chopstick
+P3 attempting to acquire a chopstick
+P2 attempting to acquire a chopstick
+P1 attempting to acquire a chopstick
+P0 attempting to acquire a chopstick
+P4 has died
+P2 has died
+P3 has died
+P1 has died
+P0 has died

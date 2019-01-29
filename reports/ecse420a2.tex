@@ -1,0 +1,261 @@
+\documentclass[12pt,letterpaper,titlepage]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usepackage{siunitx}
+\usepackage[toc, page]{appendix}
+\usepackage{textcomp}
+\usepackage{url}
+\usepackage{hyperref}
+
+\author{Ali Sharif, Ebou Jobe \\ Group 13}
+\title{ECSE 420 Assignment 2 Report}
+\date{\today}
+
+\pgfplotsset{width=13cm}
+
+\lstdefinestyle{console_output}{
+  numbers=left,
+  frame=LR
+}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstdefinestyle{javacode}{
+  numbers=left,
+  frame=single,
+  basicstyle=\footnotesize\ttfamily,
+  language=Java,
+  breaklines=true,
+  keywordstyle=\color{blue},
+  commentstyle=\color{mygreen},
+  stringstyle=\color{mymauve},
+  numberstyle=\ttfamily
+}
+
+\newcommand{\methodcall}[4]{\textlangle{}\emph{#1.#2}(#3) \emph{\textbf{#4}}\textrangle{}}
+\newcommand{\pre}{$\rightarrow$}
+
+\begin{document}
+  \maketitle
+  \newpage
+  \pagenumbering{roman}
+  \tableofcontents
+  \newpage
+  \pagenumbering{arabic}
+   
+  \setlength{\parskip}{1em}
+   
+  \section{Question One}
+  \subsection{Preface \& Execution Instructions}
+    All locks execute the same test\footnote{Located in \texttt{./src/ca/mcgill/ecse420/a2/TestThreadJob.java}}. Each test will create six threads to run in a loop and append incremental values to a stack. The values in the stack have to represent a sub-sequence of the whole numbers. Each thread will act on the stack only after acquiring a lock. Additionally, the test will keep track how many times each thread enters its critical section after acquiring said lock. At the end of the test run, the elements, $e_i$, in the stack are checked to see if they have the following relationship:
+    \begin{equation*}
+      e_{i+1} = e_i + 1 \quad \forall \ i \in [0, n-1]
+    \end{equation*}
+    Where $n$ is the size of the stack. If this relationship is maintained then we can be sure of mutual exclusion between the threads. This is because each thread will peek a value, $e$, at the top of the stack and sleep for $t_c$. After waking up, a value, $e+1$, will be pushed onto the stack. Only mutual exclusion can ensure a stack satisfying said relationship.
+    
+    The execution time in each critical section, $t_c$, and outside, $t_i$, for each thread is artificially controlled as follows
+    \begin{equation*}
+      t_i = t_c = \text{rand}(0, T_m) \cdot T_p + 1
+    \end{equation*}
+    Where $T_m$ is defined as the final field \texttt{MAX\_WAIT}, $T_p$ is the execution penalty which is set at job creation time, and $\text{rand}(0, T_m)$ returns a random number $\in [0, T_m]$
+    
+    Commenting out the line \texttt{t.use\_penalty = true;} in each lock file will set $T_p = 1$ for all threads.
+    
+    All locks implement the custom interface in \texttt{Lock.java}\footnote{Located in \texttt{./src/ca/mcgill/ecse420/a2/Lock.java}}. This ensures generality in all tests.
+    
+    Executing the lock files, \texttt{FilterLock.java}\footnote{Execute \texttt{./src/ca/mcgill/ecse420/a2/FilterLock.java}} and \texttt{BakeryLock.java}\footnote{Execute \texttt{./src/ca/mcgill/ecse420/a2/BakeryLock.java}}, will execute the above test for each lock. The console will mark when each thread enters its critical section. Once the main thread is done sleeping, it will attempt to shutdown the thread pool and end all threads. Finally, the results of execution will be printed out; The count of how many times each thread entered its critical section and whether the stack's elements are sequential. If the stack has errors that violate the consistency we previously defined then the contents of the stack will be printed out.
+    
+   \subsection{Some Definitions}
+    Provided here is the shorthand notation that will be used to talk about the behaviours of each thread with respect to each lock
+   \begin{enumerate}
+     \itemsep 0em
+     \item $P_i$ is thread $i$
+     %\item $\ell$ is the target level of $P_i$
+     \item $D_i$ is doorway of $P_i$
+     \item $W_i$ is waiting/spinning of $P_i$
+   \end{enumerate}
+    
+   \subsection{Filter Lock}
+    Suppose there are two threads, \textbf{A} \& \textbf{B}, and $P_B$ starts it doorway, $D_B$, before $P_A$ can start $D_A$. However, $D_A$ completes before $D_B$ and thread \textbf{A} will acquire the lock and overtake \textbf{B}. This can be seen as follows.
+    
+    If $P_A$ completed $D_A$ before $P_B$ completes $D_B$ then \texttt{victim = A} and $P_A$ is in $W_A$. Once $P_B$ completes $D_B$, \texttt{victim} will be changed to \texttt{B} and $P_A$ will exit $W_A$ and acquire the lock.
+    
+    Even though $P_B$ started its doorway before $P_A$, $P_A$ still acquired the lock. Extending this to arbitrary $n$ threads, we can see that a thread \textbf{B} can be overtaken an arbitrary amount of times.
+    
+    Thus the FilterLock is not fair.
+    
+  \subsection{Bakery Lock}
+    Suppose there are two threads, \textbf{A} \& \textbf{B}. If \textbf{A}'s doorway precedes \textbf{B}'s, $D_A \rightarrow D_B$, then \textbf{A}'s label is smaller since
+    \begin{equation*}
+      \text{write}_A(\text{label}[A])
+      \rightarrow
+      \text{read}_B(\text{label}[A])
+      \rightarrow
+      \text{write}_B(\text{label}[B])
+      \rightarrow
+      \text{read}_B(\text{flag}[A])
+    \end{equation*}
+    so \textbf{B} is locked out while \texttt{flag[A]} is true.
+    
+    Thus, no thread can be arbitrarily overtaken by other threads and the BakeryLock is \emph{first-come-first-served}
+    
+  \subsection{Mutual Exclusion} 
+    It is seen that both locks pass the mutual exclusion test in \texttt{TestThreadJob.java}\footnote{Located in \texttt{./src/ca/mcgill/ecse420/a2/TestThreadJob.java}}. There are no duplicated entries in the stack and each thread entered its critical section multiple times.
+  
+  \section{Question Two}
+    Using regular registers does not change the mutual exclusion behaviour of the locks for two threads.
+    \subsection{LockOne}
+    Suppose that $P_B$ just entered $W_B$ after completing $D_B$ and is concurrently reading \texttt{flag[A]} with $P_A$. Since $P_A$ is in $D_A$ and writing to \texttt{flag[A]}, the overlapping read, \methodcall{flag[A]}{read}{}{B}, can return either true or false.
+    \begin{itemize}
+      \item If true is returned, then $P_B$ will continue to wait in $W_B$. $P_A$ will continue onto $W_A$ and see \texttt{flag[B]} as true and remain there. (In the case that there are several reads within the interval of \methodcall{flag[A]}{write}{true}{A}, returning true takes us to this same point and returning false takes us to the following point).
+      \item If false is returned, then $P_B$ will exit $W_B$ and acquire the lock. There will be no more reads from $P_B$ and $P_A$ will be in $W_A$ until $P_B$ calls \texttt{unlock()}
+    \end{itemize}
+    Thus 2-thread mutual exclusion is maintained.
+    
+    \subsection{LockTwo}
+    Similar argument as done for LockOne will be made. In this case suppose that a thread \textbf{B} is reading the field, \texttt{victim}, at the same time that another thread, $P_A$, is writing to it. \methodcall{victim}{read}{}{B} can return either \texttt{A} or \texttt{B}. Additionally, $P_B$ is in $W_B$ and $P_A$ is in $D_A$.
+    \begin{itemize}
+      \item If \texttt{B} is returned, then $P_B$ will remain in $W_B$, $P_A$ will set \texttt{victim = A} get stuck in $W_A$. On the next read, $P_B$ will take the lock and $P_A$ will remain in $W_A$ until $P_B$ next performs $D_B$.
+      \item If \texttt{A} is returned, then $P_B$ will exit $W_B$ and acquire the lock. $P_A$ will set \texttt{victim = A} get stuck in $W_A$, and only be released once $P_B$ next performs $D_B$.
+    \end{itemize}
+    Thus atomic registers are not needed to guarantee 2-thread mutual exclusion for LockOne \& LockTwo.
+  
+  \section{Question Three}
+    A code sample, \texttt{LockThree.java}\footnote{Execute \texttt{./src/ca/mcgill/ecse420/a2/LockThree.java}}, is provided for this example. The same test as done in Q1 is performed. The results of 2-thread exclusion, $ n $-thread deadlock and starvation freedom can be observed. In accordance to how code samples are written in the book, the variables were changed to be volatile to ensure inter-thread visibility.
+  
+    \paragraph{Mutal Exclusion} Given that two threads $P_A$ and $P_B$ are in their critical section, that must mean in each of their waiting phases, \texttt{turn $\not=$ A} and \texttt{turn $\not=$ B}. This situation is only possible if there is a third thread, $P_C$, available. Another way to think about this is a follows. Assume that $P_A$ has completed $D_A$ and is now in $W_A$. Now $P_B$ comes along and starts $D_B$, this changes \texttt{turn} from \texttt{A} to \texttt{B}, thus allowing $P_A$ to complete $W_A$ and acquire the lock. Now $P_B$ is in $W_B$ and will remain there until either
+    \begin{itemize}
+      \itemsep 0em
+      \item $P_A$ calls \texttt{unlock()}, thus setting \texttt{busy = false}
+      \item Another thread, $P_C$ comes along and changes \texttt{turn} to \texttt{C}
+    \end{itemize}
+    Only in the former is mutual exclusion provided. In the latter, $P_A$ might still be in its critical section when $P_B$ enters its critical section. Thus $ n $-thread mutual exclusion is not provided, but rather 2-thread mutual exclusion.
+    
+    \paragraph{Deadlock Freedom} Yes, the lock prevents deadlock for $n \ge 2$. Suppose that $P_A$ starts $D_A$ and is interrupted by $P_B$, which starts $D_B$. In this case one thread or the other will be able to set \texttt{turn}. In both doorways, \texttt{busy = false} is set so it can be ignored. Now suppose
+    \begin{itemize}
+      \item $P_B$ sets \texttt{turn = B} after interrupting $D_A$ and enters $W_B$. This means that $P_A$ will pass through $W_A$ without waiting.
+      \item $P_B$ gets interrupted after setting \texttt{turn = B} in $D_B$, and $P_A$ sets \texttt{turn = A}. This means that once $P_B$ resumes, it will pass through $W_B$ without waiting and that $P_A$ will wait in $W_A$.
+    \end{itemize}
+    This logic extends to n-threads as well. Thus $ n $-thread deadlock freedom is guaranteed for $n \ge 2$, however for $n=1$ you will have deadlock. This is because once \texttt{turn = me} is set another thread needs to come along change \texttt{turn} in order to free the thread.
+     
+    \paragraph{Starvation Freedom} Yes, the lock prevents starvation for $n \ge 2$ and where all threads are trying to enter their critical sections. As each doorway causes the executing thread to waiting until another thread can take its place in the doorway. For $n=1$, you will have starvation because the executing thread will wait forever for a non-existent thread to take its place in the doorway.
+  
+  \section{Question Four}
+  \subsection{History (a)}
+    \paragraph{Sequential Consistency} Reordering history but preserving program order results in a execution history as follows
+    \begin{enumerate}
+        \itemsep 0em 
+        \item \methodcall{r}{write}{0}{A}
+        \item \methodcall{r}{write}{1}{B}
+        \item \methodcall{r}{read}{1}{A}
+        \item \methodcall{r}{write}{2}{A}
+        \item \methodcall{r}{read}{2}{B}
+        \item \methodcall{r}{read}{2}{C}
+        \item \methodcall{r}{write}{3}{C}
+    \end{enumerate}
+    Thus this history is sequentially consistent.
+    
+%    \begin{gather*}
+%      \xleftrightarrow{r.write(0) \ A}
+%      \xleftrightarrow{r.write(1) \ B}
+%      \xleftrightarrow{r.read(1) \ A}
+%      \xleftrightarrow{r.write(2) \ A}
+%      \xleftrightarrow{r.read(2) \ B}
+%      \xleftrightarrow{r.read(2) \ C}
+%      \xleftrightarrow{r.write(3) \ C}
+%    \end{gather*}
+    
+    \paragraph{Linearizability} Since \methodcall{r}{write}{2}{A} $\rightarrow$ \methodcall{r}{read}{2}{B}, \methodcall{r}{write}{2}{A} \pre \methodcall{r}{read}{2}{C}, and \methodcall{r}{read}{2}{C} $\rightarrow$ \methodcall{r}{write}{3}{C} we can say that the linearization point of \methodcall{r}{write}{2}{A} must have occurred:
+    \begin{enumerate}
+        \item Before the linearization point of \methodcall{r}{read}{2}{C}
+        \item After the linearization point of \methodcall{r}{write}{3}{C}
+    \end{enumerate}
+    However, in both cases the object's sequential history is violated
+    \begin{enumerate}
+        \item If this history is true, then the linearization point of \methodcall{r}{write}{3}{C} occurred after the linearization point of \methodcall{r}{write}{2}{A}, thus making the method \methodcall{r}{read}{2}{B} invalid.
+        \item If this history is true, then the linearization point of \methodcall{r}{read}{2}{C} occurred before the linearization point of \methodcall{r}{write}{2}{A}. The order is nonsensical because there is no suitable method available to precede \methodcall{r}{read}{2}{C}.
+    \end{enumerate}
+    Thus this history is not linearizable.
+    
+    \subsection{History (b)}
+        \paragraph{Sequential Consistency} This history is not sequentially consistent because we require \methodcall{r}{write}{1}{B} $\rightarrow$ \methodcall{r}{read}{1}{C} and \methodcall{r}{write}{2}{C} $\rightarrow$ \methodcall{r}{read}{2}{B} with no other writes in between for object's sequential consistency. Specifying \methodcall{r}{write}{2}{C} \pre \methodcall{r}{write}{1}{B} causes a problem because we now have:
+        
+        \methodcall{r}{write}{2}{C} \pre \methodcall{r}{write}{1}{B} \pre \methodcall{r}{read}{1}{C} \pre \methodcall{r}{read}{2}{B}
+        
+        Which is nonsensical. A similar situation occurs when we specify that \methodcall{r}{write}{1}{B} \pre \methodcall{r}{write}{2}{C}. Thus the history is not sequentially consistent.
+        
+        \paragraph{Linearizability} If a history is not sequentially consistent then it cannot be linearizable. Since linearizability implies sequential consistency, it is not possible for a history to be linearizable if said history is not sequentially consistent. Thus this history is not linearizable.
+        
+  \section{Question Five}
+    \paragraph{5.1} Division by zero can occur. This is due to cache coherency problems. In Java using the \texttt{volatile} keyword on fields causes writes/reads of that field be come through main memory. In other words, the cache for that field is invalidated in all threads when the field is accessed. This means when thread A updates \texttt{x} and \texttt{v}, only the change to \texttt{v} is visible to another thread B. So when B calls \texttt{reader()}, \texttt{v == true} will evaluate to true and the line \texttt{int y = 100/x;} will be executed with \texttt{x = 0}
+    
+%    \paragraph{5.1} Division by zero will never occur because the Java memory model, JMM, implies a happens before relationship between volatile writes and reads\cite{chapter17threadsandlocks}. If a thread \textbf{A} writes to \texttt{v}, and thread \textbf{B} reads \texttt{v} concurrently, they are ordered such that \methodcall{v}{write}{true}{A} \pre \methodcall{v}{read}{true}{B}. Additionally, since writes/reads to volatile fields are linearizable\cite{herlihy_shavit_2012} we can construct a linearized program history:
+%    
+%    \methodcall{x}{write}{42}{A} \pre \methodcall{v}{write}{true}{A} \pre \methodcall{v}{read}{true}{B} \pre \methodcall{x}{read}{42}{B}
+%    
+%    The ordering, \methodcall{v}{read}{true}{B} \pre \methodcall{x}{read}{42}{B}, is created by the \texttt{if} condition on \texttt{v}. However, the ordering \methodcall{x}{write}{42}{A} \pre \methodcall{v}{write}{true}{A} is due to the JMM; Writes to non-volatile fields that are before writes to volatile fields in program order cannot be reordered by the compiler, ie., program order and execution order are the same in regards to volatile fields. Due to this strict ordering, there is never a case that division by zero can occur. Even if thread \textbf{B} were started before thread \textbf{A}, the field \texttt{v} would be false and division by zero would not occur.
+    
+    \paragraph{5.2} If both \texttt{x} and \texttt{v} are volatile then both changes to the variables are propagated between threads. This only occurs in the case that \texttt{x} is changed before \texttt{v}, so that when thread B interrupts A and sees that \texttt{v} is true, \texttt{x} must not be zero. However, if they are both not volatile then no guarantees can be made about ordering and caching. Thus there is a possibility for thread \textbf{B} to interrupt thread \textbf{A}, and read \texttt{v} as true while \texttt{x = 0}. As visibility and ordering guarantees are only provided in regards to volatile field accesses. Thus the compiler could possibly reorder history and since the relative order between threads cannot be guaranteed, there is a possibility that $a_x = 0$:
+     %\methodcall{v}{write}{true}{A} \pre \methodcall{x}{write}{42}{A}
+     %\methodcall{v}{read}{true}{B} \pre \methodcall{x}{read}{$a_x$}{B}
+     \begin{align*}
+       &A \quad \qquad \xleftrightarrow{v.\text{write}(\text{true}) \ A} \xleftrightarrow{x.\text{write}(42) \ A} \\
+       &B \quad \xleftrightarrow{v.\text{read}(\text{true}) \ B} \xleftrightarrow{x.\text{read}(a_x) \ B}
+     \end{align*}
+    
+  \section{Question Six}
+    \paragraph{6.1} The requirements for a M-valued MRSW register to be regular are as follows:
+    \begin{enumerate}
+      \itemsep 0em
+      \item If a write, $W^i$, precedes a read, $R^j$, such that $i \le j$, and there is no $W^k$ such that $i < k < j$, then $R^j$ should return the value written by $W^i \ \forall \ j \ge i$
+      \item If several sequential reads, $(R^j,\dots,R^i)$, overlap with a write, $W^k$, then each of those reads can return a value written by either $W^k$ or the immediately preceding write, $W^{k-1}$.
+    \end{enumerate}
+    Given two non-interleaved subsequent writes, \texttt{write(i)} and \texttt{write(j)}, such that $j > i$, all subsequent reads will return $i$ and not $j$. This is because \texttt{read()} returns the value equal to the lowest index with a set bit and \texttt{write(int x)} does not set the lower bits, $[0, x-1]$, to 0. This clearly violates the first condition of a regular MRSW register.
+    
+    \paragraph{6.2} The requirements for a M-Valued MRSW register to be safe are as follows:
+    \begin{enumerate}
+      \itemsep 0em
+      \item If a write, $W^i$, precedes a read, $R^j$, such that $i < j$, and there is no $W^k$ such that $i < k < j$, then $R^j$ should return the value written by $W^i \ \forall \ j > i$
+      \item If several sequential reads, $(R^j,\dots,R^i)$, overlap with a write, $W^k$, then each of those reads can return a value $\in [0, M-1]$
+    \end{enumerate}
+    Similar to 6.1, we can see that condition one is violated and thus the register is no longer safe.
+    
+    Additionally, note that the register is initialized with \texttt{r\_bit[0] = true}; This means that, \texttt{read()} will always return zero, regardless of what is written. The register is functionally broken.
+  
+  \section{Question Seven}
+    Given a protocol to solve binary consensus between $n$-threads, we can use $n=2$ to solve binary consensus for 2-threads. However, since binary consensus using atomic registers is impossible for two threads, this is a contradiction.
+    
+    Thus, if 2-thread consensus cannot be solved by atomic registers, $n$-thread consensus cannot be solved either.
+    
+  \section{Question Eight}
+    Suppose consensus over $k > 2$ values is possible, while binary consensus
+    is impossible. We could now construct a binary consensus protocol simply by forming
+    the $k$-consensus and mapping $[0, \lceil \frac{k}{2} \rceil]$ to $0$ and $[\lceil \frac{k}{2} \rceil, k]$ to $1$. This contradicts the fact that binary consensus is impossible.
+    
+    Therefore, $k$ consensus is not possible if binary consensus is impossible.
+    
+  \newpage
+  \begin{appendices}
+    \newcommand{\srcfile}[1]{
+    \subsection{#1.java}
+    Located in \texttt{../src/ca/mcgill/ecse420/a2/#1.java}
+    \lstinputlisting[style=javacode]{../src/ca/mcgill/ecse420/a2/#1.java}
+    }
+    \section{Source for Q1}
+    \srcfile{Lock}
+    \srcfile{TestThreadJob}
+    \srcfile{Tester}
+    \srcfile{FilterLock}
+    \srcfile{BakeryLock}
+    \section{Source for Q3}
+    \srcfile{LockThree}
+  \end{appendices}
+  
+\end{document}

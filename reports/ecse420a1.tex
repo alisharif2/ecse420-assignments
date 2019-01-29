@@ -1,0 +1,154 @@
+\documentclass[12pt,letterpaper,titlepage]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{listings}
+
+\author{Ali Sharif}
+\title{ECSE 420 Assignment 1}
+
+\lstdefinestyle{custom}{
+  numbers=left,
+  frame=LR,
+  %basicstyle=\footnotesize\ttfamily
+}
+
+\begin{document}
+  \maketitle
+  \newpage
+  \pagenumbering{roman}
+  \tableofcontents
+  \newpage
+  \pagenumbering{arabic}
+  
+  \section{Question 1}
+  \section{Question 2}
+  
+  \section{Dining Philosophers Problem}
+  \subsection{Deadlocked Starving Philosophers - 3.1}
+  
+  We implement each philosopher as a state machine. There is a tick system associated with actions and moving between states. Each philosopher will process its action in the interval of a tick. The tick is implemented by making the thread executing the philosopher sleep for \textbf{waitTime} milliseconds.
+  
+  \begin{itemize}
+    \item \textit{THINKING} - The philosopher will slowly acquire starvation points at a rate of 1 per tick. Once a limit has been reached, called \textbf{\_hunger}, the state will be changed to \textit{ACQUIRING}
+    \item \textit{ACQUIRING} - The philosopher will attempt to obtain two chopsticks. Each tick, one attempt will be made. The starvation points are slowly acquired in this stage as well. Once two chopsticks have been obtained then the philosopher will move onto the \textit{EATING} state.
+    \item \textit{EATING} - Starvation points will be removed at a rate of -10 per tick. Once at zero, the state will change to \textit{THINKING}
+  \end{itemize}
+  
+  For each philosopher, at the beginning of each tick, before the state machine is processed, the starvation of the philosopher is compared against a constant called \textbf{\_max\_starvation}, if the starvation is larger then the philosopher is considered dead and the thread returns from run().
+  
+  Chopsticks are a class that have a mutable property of whether they are reserved or not. In order to prevent philosophers from claiming the same chopstick, the take/leave functions have the synchronized keyword on them. That is the extend of the multi-threaded protection used in this version of the code.
+  
+  As you can see below in the console output, each philosopher acquires a single chopstick. However, they are then unable to obtain a second one because all the chopsticks have been reserved; This is deadlock. Eventually they all starve and die.
+  
+  \lstinputlisting[lastline=15, style=custom]{log_3_1.txt}
+  \begin{center}
+    \dots
+  \end{center}
+  \lstinputlisting[firstline=90, firstnumber=90, style=custom]{log_3_1.txt}
+  
+  Each philosopher is represented using a code in the format P\#. Thus the first philosopher is P0. A similar coding has been used for chopsticks, C\#
+  
+  \subsection{Concurrently Queued Philosophers - 3.2 \& 3.3}
+  By modifying the philosophers to use a queue based mutex we can ensure that each philosopher can access two chopsticks and be treated fairly. The lock doesn't take into account how long each philosopher has been waiting and instead uses a set based queue.
+  
+  Each philosopher can only retrieve chopsticks when it is their turn in line. They can only request to placed in the queue once. This helps prevent the queue from being bogged up with requests from one philosopher.
+  
+  If the philosopher is in \textit{EATING} state and does not have two chopsticks, it requests a lock from the QueueLock object using requestLock(). If the philosopher is not present in the queue, then its reference will be placed in the queue; subsequent requests to be placed in queue will be ignored until the philosopher has been removed.
+  
+  Additionally, requestLock() returns the status of the philosopher in the queue. If present at the front of the queue, the it will return true and the philosopher will take two chopsticks, and release the lock using unlock(). That function removes the philosopher from the queue and allows the next philosopher in line to take the lock.
+  
+  \lstinputlisting[lastline=20, style=custom]{log_3_3.txt}
+  \begin{center}
+    \dots
+  \end{center}
+  \lstinputlisting[firstline=400, firstnumber=400, style=custom]{log_3_3.txt}
+  
+  It could go on forever. Thus the problem with deadlock is avoided and the philosophers never starve.
+  
+  \section{Amdahl's Law}
+  \paragraph{4.1}
+  
+  \paragraph{Answer} The parallel portion of the program is $p = 60\%$. $S$ represents the speed up using $n$ processors.
+  
+  \begin{equation*}
+  S(n) = \frac{1}{1 - p + \frac{p}{n}}
+  \end{equation*}
+  
+  If we take the limit of this equation we can find the maximum theoretical speedup.
+  
+  \begin{equation*}
+  \lim_{n \rightarrow \infty} S(n) = \frac{1}{1 - p} = 2.5
+  \end{equation*}
+  
+  Thus the maximum speed up with unlimited resources is 2.5
+  
+  \paragraph{4.2}
+  
+  \paragraph{Answer} $s_n$ is the speed up of the program with sequential component $S$, $s_n'$ is the speed up of the program with sequential component $S'$, $k$ is reduction factor of the sequential components, and $n$ is the number of processors.
+  
+  \begin{align*}
+  s_n' &> 2 s_n \\
+  \frac{1}{S' + \frac{1-S'}{n}} &> \frac{2}{S + \frac{1-S}{n}} \\
+  S' + \frac{1-S'}{n} &< \frac{1}{2}\left( S + \frac{1-S}{n}\right)
+  \end{align*}
+  
+  Isolating the $S'$ term in the inequality results in
+  
+  \begin{equation*}
+  S' < \frac{nS - S - 1}{2(n - 1)} \quad,\quad \forall n > 1
+  \end{equation*}
+  
+  Using the value $S=0.2$ we can solve and see that
+  
+  \begin{equation*}
+  S' < \frac{n-6}{10(n-1)} \quad,\quad \forall n > 1
+  \end{equation*}
+  
+  If we assume
+  
+  \begin{equation*}
+  S' = kS \quad,\quad k > 0
+  \end{equation*}
+  
+  Then we can see that
+  
+  \begin{equation*}
+  k < \frac{n-6}{2(n-1)}
+  \end{equation*}
+  
+  However, there is a minimum value of $n$ required in order to satisfy $s_n' > 2s_n$ and $k>0$
+  
+  \begin{equation*}
+  0 < \frac{n-6}{2(n-1)} \implies n > 6
+  \end{equation*}
+  
+  Thus finally
+  
+  \begin{equation*}
+  0 < k < \frac{n-6}{2(n-1)} \quad,\quad \forall n > 6
+  \end{equation*}
+  
+  If we were given unlimited resources, $n\rightarrow\infty$
+  
+  \begin{equation*}
+  0 < k < \frac{1}{2}
+  \end{equation*}
+  
+  \paragraph{4.3}
+  
+  \paragraph{Answer} $s_n$ is the speed up of the program, $S$ is the sequential component of the program, and $n$ is the number of processors.
+  
+  \begin{equation*}
+  s_n = \dfrac{1}{S + \dfrac{1 - S}{n}} \quad\quad
+  2s_n = \dfrac{1}{\dfrac{S}{3} + \dfrac{1 - \dfrac{S}{3}}{n}}
+  \end{equation*}
+  
+  Solving from that point onwards we can see
+  
+  \begin{equation*}
+  S = \frac{3}{n - 1}
+  \end{equation*}
+  
+\end{document}

@@ -1,0 +1,197 @@
+\documentclass[12pt,letterpaper,titlepage]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usepackage{siunitx}
+\usepackage[toc, page]{appendix}
+\usepackage{textcomp}
+\usepackage{url}
+\usepackage{hyperref}
+
+\author{Ali Sharif, Ebou Jobe \\ Group 13}
+\title{ECSE 420 Assignment 3 Report}
+\date{\today}
+
+\pgfplotsset{width=13cm}
+
+\lstdefinestyle{console_output}{
+  numbers=left,
+  frame=LR
+}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstdefinestyle{javacode}{
+  numbers=left,
+  frame=single,
+  basicstyle=\footnotesize\ttfamily,
+  language=Java,
+  breaklines=true,
+  keywordstyle=\color{blue},
+  commentstyle=\color{mygreen},
+  stringstyle=\color{mymauve},
+  numberstyle=\ttfamily
+}
+
+\begin{document}
+  \maketitle
+  \newpage
+  \pagenumbering{roman}
+  \tableofcontents
+  \newpage
+  \pagenumbering{arabic}
+  
+  \setlength{\parskip}{1em}
+  
+  \section{Preface}
+    All source code used is included. For each question there is an explanation of each file. However, for clarity's sake all main method including java files are listed here:
+    \begin{itemize}
+      \itemsep 0em
+      \item \texttt{FineList.java} - Question 2
+      \item \texttt{ArrayQueueTester.java} - Question 3
+      \item \texttt{MatrixTester.java} - Question 4
+    \end{itemize}
+  
+  \section{Memory Access \& AndersonLock}
+    
+    \paragraph{1.1}
+    The value L’ represents the maximum number of elements such that the array can fit entirely into a cache block. At this size or smaller, a cache hit is guaranteed every time the program searches for an element, so the time taken to access any element is constant and short.
+    
+    \paragraph{1.2}
+    T1 indicates the average time taken to access the element L when the array can no longer fit inside a cache block. Now that L is larger than L’, a cache hit is no longer guaranteed, and a cache miss requires reading from main memory, which takes dozens of times longer than reading from the cache. As the stride is increased, the number of elements of L that will be stored in together in a cache block decreases, as the padding between elements accounts for more space in the cache block. When many trials are performed and their times averaged, this leads to an exponential-curve as seen in section 2. As s increases, the higher likelihood of cache misses drive the average time exponentially upwards. Finally, when the stride reaches a certain size only one element L can fit in the cache block at any time, so each array element access requires reading from main memory, and this is represented by section 3, where the time curve is a constant line, larger than the constant line labelled 0.
+    1.3 - For each part of the graph – parts 1, 2 and 3 -, justify its behaviour. 
+    We know a phenomenon called false sharing could cause unnecessary invalidations in ALock (Anderson Lock), and one way to avoid false sharing is to pad array elements so that distinct elements are mapped to distinct cache lines. 
+    
+    \paragraph{1.3}
+    At size L’ or smaller, a cache hit is guaranteed every time the program searches for an element, so the time taken to access any element is constant and short. When L is larger than L’, a cache hit is no longer guaranteed, and a cache miss requires reading from main memory, which takes dozens of times longer than reading from the cache. As the stride is increased, the number of elements of L that will be stored in together in a cache block decreases, as the padding between elements accounts for more space in the cache block. When many trials are performed and their times averaged, this leads to an exponential-curve as seen in section 2. As s increases, the higher likelihood of cache misses drive the average time exponentially upwards. Finally, when the stride reaches a certain size only one element L can fit in the cache block at any time, so each array element access requires reading from main memory, and this is represented by section 3, where the time curve is a constant line, larger than the constant line labelled 0.    
+      
+    \paragraph{1.4}
+    Considering the results from Fig.1, how could the padding technique used in ALock degrade the overall performance of the lock? 
+    For an array which can fit entirely within a cache block, this technique has fewer negative effects. The speed of element accesses is not affected; however, the memory consumed is still inefficient. In the case of an array which cannot fit entirely into a cache block, the technique degrades performance in speed and memory efficiency. t is sufficient to pad just enough for each element to fit onto a single cache line. As stride increases, eventually only a single element can be held in a cache block, causing each read to take far longer, as each element access must read from main memory.
+    The original plan for Anderson lock was to avoid bus traffic and cache invalidation across all threads by providing an order for the  the threads to perform computation. The implementation of exponentially increasing stride completely negates the intended effect of padding, which was to avoid other threads invalidating the ‘true’ writes to the flag array. The time taken to write to the flag array has drastically increased, and the memory needed to support the Anderson lock exponentially increases with this method.
+  
+%    \subsection{Memory Access}
+%      Since $s$ represents the spacing between words in memory, and in each loop iteration the processor will fetch one cache line at a time. We see that when $s \le 2$ that we can load 2 words into a cache line at once. However, if we only have one element to load $L=1$ then varying $s$ does not change anything, hence $L'=2$. Time $t_0$ represents the time to load one element and is the ideal.
+%      
+%      If however that $L>L'$, we can see that for $1 \le s \le 2$ that we are capable of loading several elements into a single cache line at once reducing the cache hit rate. This will mean that $t_1$ occurs when $s$ is sufficiently large that only one element can be present in the cache at a time. Thus cache miss rate increases with $s$.
+%      
+%      \paragraph{Graph section 1} This is when $L=1$ and represents the ideal load time of each element
+%      \paragraph{Graph section 2} This is when $L>2$ but $s \le 2$ so that when we read one element from memory into cache, the next one is also loaded alongside it. It doesn't meet graph section 1 because there is still an additional delay with reading elements from the cache(Reading the second loaded element in the cache after the first one).
+%      \paragraph{Graph section 3} This is when $L>2$ and $s > 2$. This part of the graph is constant because loading each cache line takes constant time.
+%      
+%    \subsection{AndersonLock}
+%      As we have shown above, using padding to reduce false sharing causes more cache hits and thus degrades performance because time is wasted fetching from memory.
+%    
+  \section{Fine-grained Locking Set}
+    Execute the file \texttt{FineList.java} to run the test. The basic principle of the test is only removing items that are present. There are a total of four threads. One thread that calls both \texttt{contains()} and \texttt{remove()}, and three that exclusively call \texttt{add()}.
+    
+    The producer threads are simultaneously attempting to add elements from the range [1, 20] into the set, while the consumer thread is running as well.
+    
+    If the consumer thread attempts to remove an item not present in the list an error message will be logged to the console. The output of an example run is as follows:
+    \begin{verbatim}
+[H]->[8]->[17]->[18]
+    \end{verbatim}
+    This is the string representation of the list.
+    
+    The \texttt{add()} and \texttt{remove()} methods are taken from the textbook, and the \texttt{contains()} method is adapted from the former two functions; since they both implicitly check the contents of the set before executing.
+  
+  \section{Bounded MRMW Queue}
+      The most difficult part was taking care of three linearization points. In the linked list version present in the book, there are only two linearization points; One for the tail and one for appending the node. However, in the bounded array based case, we have one more.
+      \begin{itemize}
+        \itemsep 0em
+        \item Increment \texttt{tail}
+        \item Increment \texttt{size}
+        \item Inserting into the array
+      \end{itemize}
+      Additionally, we have used a \texttt{AtomicReferenceArray<T>} for the array instead of a regular array. The professor said this was okay.
+      
+      This allows us to check for three conditions:
+      \begin{itemize}
+        \itemsep 0em
+        \item Inserted into the array, but \texttt{size} and \texttt{tail} have not been updated
+        \item Inserted into the array and \texttt{size} has been updated, but \texttt{tail} has not
+        \item All three have been updated
+      \end{itemize}
+    
+      We use \texttt{if} cases to check for these conditions, and help the other incomplete threads. Additionally, wherever possible, the implementation has been made lazy such that the thread will attempt to do the least amount of work each loop.
+      
+      The implementation of this class is located in the file \\ \texttt{./src/mcgill/ecse420/a3/LockFreeArrayQueue.java}
+    
+  \section{Matrix Multiplication}
+      We have provided two algorithms for parallel multiplication
+      \begin{enumerate}
+        \itemsep 0em
+        \item \texttt{MatrixTask.java} - Provided by textbook
+        \item \texttt{SimpleParallelizedMultiplier.java} - Our custom multiplier
+      \end{enumerate}
+    
+      The algorithm provided by the multiplier has been modified slightly. The the base case has been changed from a one-by-one matrix to a 100-by-100 matrix. This ensure that we are not abusing threads and using them for very small computations.
+      
+      Our custom algorithm breaks the multiplication down into dot-products. Each element of the product matrix has a single job assigned to the thread pool. Each thread calculates the dot product using a row from the left matrix and a column from the right matrix and saves that value into the product matrix.
+      
+      Example output from running \texttt{Matrix.java}
+      \begin{verbatim}
+Problem Size: 2048
+Number of threads: 4
+Average of 10 parallel multiplication runs: 3549560.00 ns
+Average of 10 sequential multiplication runs: 6333460.00 ns
+      \end{verbatim}
+      This output was generated using \texttt{SimpleParallelizedMultiplier.java}
+      
+      The speed up is $\approx 1.78 $
+      
+      The sequential algorithm runs in $\mathcal{O}(n^2)$ for a matrix and a vector. This is also the run time for each of the algorithms on one processor. The sequential algorithm can be found in \texttt{Matrix.java} as the function \texttt{seq\_mult()}.
+      
+      \paragraph{Algorithm 1} The critical path length is given as follows
+      \begin{align*}
+        M_\infty(n) &= M_\infty(\frac{n}{2}) + A_\infty(n) \\
+        &= M_\infty(\frac{n}{2}) + \Theta(\log n) \\
+        &= \Theta(\log^2 n)
+      \end{align*}
+      Hence the parallelism would be
+      \begin{equation*}
+        \frac{M_1(n)}{M_\infty(n)} = \Theta \left( \frac{n^2}{\log^2 n} \right)
+      \end{equation*}
+      
+      \paragraph{Algorithm 2} The critical path length is given as follows. Note that $D_\infty(n)$ is the dot-product time.
+      \begin{align*}
+        M_\infty(n) &= D_\infty(n) + \Theta(1) \\
+        &= \Theta(n) + \Theta(1) \\
+        &= \Theta(n)
+      \end{align*}
+      
+      Hence the parallelism would be
+      \begin{equation*}
+        \frac{M_1(n)}{M_\infty(n)} = \Theta \left( \frac{n^2}{n} \right) = \Theta(n)
+      \end{equation*}
+  
+  \newpage
+  \begin{appendices}
+    \newcommand{\srcfile}[1]{
+      \subsection{#1.java}
+      Located in \texttt{../src/ca/mcgill/ecse420/a3/#1.java}
+      \lstinputlisting[style=javacode]{../src/ca/mcgill/ecse420/a3/#1.java}
+    }
+    \section{Source for Question 2}
+      \srcfile{FineList}
+    \section{Source for Question 3}
+      \srcfile{LockBasedArrayQueue}
+      \srcfile{LockFreeArrayQueue}
+      \srcfile{SimpleQueue}
+      \srcfile{ArrayQueueTester}
+    \section{Source for Question 3}
+      \srcfile{Matrix}
+      \srcfile{SquareMatrix}
+      \srcfile{ColumnVector}
+      \srcfile{MatrixTask}
+      \srcfile{SimpleParallelizedMultiplier}
+      \srcfile{MatrixTester}
+  \end{appendices}
+  
+\end{document}
